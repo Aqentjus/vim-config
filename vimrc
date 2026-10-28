@@ -1,6 +1,12 @@
 " Use Vim defaults even when this file is selected explicitly with -u.
 set nocompatible
 
+" Silence Vim bells, including invalid cursor movements, and prevent screen flashes.
+set belloff=all
+set noerrorbells
+set visualbell
+set t_vb=
+
 " Requires a full Vim build with syntax support and the bundled netrw explorer.
 " Resolve this file's location so `vim -u /path/to/vimrc` finds our colour file.
 let s:config_dir = fnamemodify(resolve(expand('<sfile>:p')), ':h')
@@ -25,7 +31,8 @@ else
   colorscheme default
 endif
 
-" Explorer: Space is the leader key; Enter keeps netrw's normal open behavior.
+" Explorer: Space+e focuses an existing explorer; it never toggles its visibility.
+" Enter keeps netrw's normal open behavior.
 let mapleader = ' '
 nnoremap <Space> <Nop>
 let g:netrw_winsize = 25
@@ -38,7 +45,7 @@ function! s:FocusExplorer() abort
       return
     endif
   endfor
-  Lexplore
+  echo 'Explorer is not open. Use :Lexplore to open it.'
 endfunction
 
 function! s:CreateEntry() abort

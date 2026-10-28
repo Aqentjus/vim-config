@@ -29,7 +29,7 @@ The leader key is **Space**. Press the keys in sequence in Normal mode
 
 | Keys | Action |
 | --- | --- |
-| Space, then `e` | Focus an existing explorer in this tab, or open a left sidebar. |
+| Space, then `e` | Focus an existing explorer in this tab. Does not open or close panes. |
 | Enter in the explorer | Open a file in the editing pane, or enter a directory. |
 | Space, then `n` in the explorer | Prompt for a new file or directory. |
 
@@ -44,12 +44,25 @@ At the prompt:
   not part of this prompt.
 
 After creation the listing refreshes and focus stays in the explorer. Use
-Enter to open the new entry. The sidebar uses 25% of the available width.
+Enter to open the new entry. The sidebar uses 25% of the available width
+when opened with `:Lexplore`.
+
+**Space then e never toggles the sidebar.** If the explorer is not open,
+a message explains that you can run `:Lexplore` to open it. That built-in
+command is a toggle, so only use it intentionally when you need to show
+or hide the sidebar. Space then e only changes keyboard focus.
 
 This uses Vim's bundled **netrw** explorer. Enter and directory navigation
 remain netrw's own behavior. Our two helpers only focus the explorer and
 combine file/directory creation into the requested prompt. Creation uses
 Vim's `mkdir()` and `writefile()`, without shell commands or extra packages.
+
+## Decision 3: No bells or flashes
+
+Vim's invalid-key and cursor-boundary sounds are silenced using
+`belloff=all` and `noerrorbells`. `visualbell` with an empty `t_vb`
+also prevents Vim's visual bell from flashing the screen. This only
+affects Vim; it does not silence Windows or other applications.
 
 ## Try the staging version
 
@@ -84,7 +97,9 @@ tiny build: it selects Vim defaults and enables the line continuations the
 theme needs. Full theme rendering and native Windows execution of this
 revision have not been tested in the preparation environment.
 
-The explorer code was reviewed against Vim's netrw documentation and source,
-including the Vim 9.1 and current bundled versions. The preparation environment
-only has tiny Vim without evaluation or netrw, and fetching a full runtime was
-unavailable. The explorer shortcuts have therefore not been runtime-tested here.
+The focus-only explorer mapping was exercised with Vim 9.1 (huge build):
+without an explorer it leaves the layout unchanged; with a netrw window
+open it focuses that window, and repeating the command does not close it.
+Vim reported `belloff=all`, `noerrorbells`, `visualbell`, and an empty
+`t_vb` in the same test. Native Windows execution of these changes still
+needs to be checked on the actual machine.
