@@ -33,16 +33,24 @@ vim -u ./vimrc
 ```
 
 This loads this repository's configuration for that Vim session without
-installing it over your personal configuration.
+installing it over your personal configuration. The config explicitly selects
+Vim defaults (`set nocompatible`), which are needed because `-u` by itself does
+not disable Vi compatibility mode.
 
-The config enables true colour when Vim supports it and the terminal advertises
-`COLORTERM=truecolor` or `COLORTERM=24bit`. An already-enabled `termguicolors`
-setting is preserved. Otherwise Gruvbox uses its 256-colour approximations.
-A terminal with neither capability uses Vim's default scheme.
+The same commands work in PowerShell when `git` and `vim` are on `PATH`.
+Run `vim -u ./vimrc` from inside the cloned repository, on `staging`.
+
+The config enables true colour when Vim supports it and either its built-in
+`has('vcon')` check detects a working Windows virtual console, or the terminal
+advertises `COLORTERM=truecolor` or `COLORTERM=24bit`. An already-enabled
+`termguicolors` setting is preserved. Otherwise Gruvbox uses its 256-colour
+approximations. A terminal with neither capability uses Vim's default scheme.
 
 ## Validation
 
 The included colour file is byte-for-byte identical to the pinned upstream
 Git blob. Its basic theme does not depend on the optional Gruvbox autoload
-helpers. Full Vim runtime testing has not yet been performed for this
-milestone; the preparation environment only has a tiny Vim build.
+helpers. The effect of `set nocompatible` with `-u` was checked using Vim 9.1's
+tiny build: it selects Vim defaults and enables the line continuations the
+theme needs. Full theme rendering and native Windows execution of this
+revision have not been tested in the preparation environment.

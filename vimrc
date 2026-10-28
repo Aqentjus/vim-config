@@ -1,3 +1,6 @@
+" Use Vim defaults even when this file is selected explicitly with -u.
+set nocompatible
+
 " Theme only. Requires a full Vim build with syntax support.
 " Resolve this file's location so `vim -u /path/to/vimrc` finds our colour file.
 let s:config_dir = fnamemodify(resolve(expand('<sfile>:p')), ':h')
@@ -7,9 +10,10 @@ set background=dark
 syntax enable
 let g:gruvbox_contrast_dark = 'medium'
 
-" Use exact colours when the terminal advertises true-colour support.
+" Use exact colours when Vim detects a working Windows virtual console,
+" or the terminal advertises true-colour support.
 " Otherwise keep Vim's existing setting and use Gruvbox's 256-colour palette.
-if has('termguicolors') && ($COLORTERM ==# 'truecolor' || $COLORTERM ==# '24bit')
+if has('termguicolors') && (has('vcon') || $COLORTERM ==# 'truecolor' || $COLORTERM ==# '24bit')
   set termguicolors
 endif
 
