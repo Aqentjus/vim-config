@@ -184,6 +184,63 @@ table of shortcuts and everyday commands in a temporary Vim tab.
 Press **q** to close that tab and return to the editor and explorer.
 Native `:help {topic}` remains unchanged and available.
 
+## Decision 10: Mouse selection and system clipboard
+
+- **Left-click** positions the cursor; **click-and-drag** selects and
+  highlights text using Vim's Visual mode. It remains selected after release.
+- Keyboard selection still works via `v` (characters) and `V` (lines).
+- **Space then y** copies the selection to the operating system's clipboard.
+  From Normal mode, it copies the whole current line.
+- **Space then p** pastes from the operating system clipboard in Normal mode.
+- Regular Vim `y` / `p` continue to work. When a clipboard-capable Vim
+  build is available, the native `clipboard` setting also integrates
+  normal yank/put operations with the desktop clipboard.
+- Native Visual highlighting comes from Gruvbox; no UI extension is needed.
+- UTF-8 is explicitly selected to preserve Unicode text across machines.
+
+### How cross-platform clipboard access works
+
+The configuration detects the platform and prefers Vim's own clipboard
+registers when available. Otherwise it uses existing platform tools:
+
+| Platform | Built-in or fallback |
+| --- | --- |
+| Windows | Vim's native clipboard; otherwise `clip.exe` and PowerShell |
+| macOS | Vim's native clipboard; otherwise system `pbcopy` / `pbpaste` |
+| Linux Wayland | Vim's desktop clipboard, or `wl-copy` / `wl-paste` |
+| Linux X11 | Vim's desktop clipboard, or `xclip` / `xsel` |
+
+A Linux graphical session needs access to its compositor/display and a
+clipboard-capable Vim build **or** one of the mentioned command-line tools
+installed. Headless SSH sessions do not automatically have a local desktop
+clipboard. The config reports failure rather than silently copying nowhere.
+
+Use **`:ClipboardHealth`** to see the selected backend and Vim's feature
+status. It reports detection, not a proven live connection.
+
+**Why not Ctrl+C / Cmd+C?** In terminal Vim, those keystrokes may belong to
+the terminal emulator or signal handling. An ordinary mouse drag is a Vim
+selection, not necessarily a terminal selection. Space+y and Space+p work
+consistently inside Vim without hijacking those shortcuts. Terminal-specific
+Shift-drag or paste shortcuts can still be used where supported.
+
+When a program is running in a Vim terminal pane, use
+**Ctrl+W then N** to enter Terminal-Normal mode before using Vim's text
+selection and copy controls on its output.
+
+### Validation and limitations
+
+The config and fallback clipboard commands were exercised using Vim 9.1
+(huge build, without +clipboard) on Linux, with a simulated X11 `xclip`
+utility. Tests covered Visual copy, whole-line copy, paste from an external
+clipboard value, Unicode characters, preserved Vim registers, and the
+`:ClipboardHealth` diagnostic. The built-in Visual highlight group is
+present. The pre-existing Neovim-only `TermOpen` autocmd was corrected to
+Vim's `TerminalWinOpen` to prevent a startup error.
+
+Actual GUI mouse dragging and native Windows, macOS, and Linux desktop
+clipboard integration still require checks in those environments.
+
 ## Try the staging version
 
 Install Git and a full Vim build with evaluation and syntax support, then:

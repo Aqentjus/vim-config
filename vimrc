@@ -1,5 +1,6 @@
 " Use Vim defaults even when this file is selected explicitly with -u.
 set nocompatible
+set encoding=utf-8
 
 " Silence Vim bells, including invalid cursor movements, and prevent screen flashes.
 set belloff=all
@@ -219,7 +220,7 @@ augroup VimConfigEditing
   autocmd!
   autocmd FileType netrw setlocal nonumber norelativenumber
   autocmd FileType python setlocal tabstop=4 shiftwidth=4 softtabstop=4
-  autocmd TermOpen * setlocal nonumber norelativenumber
+  autocmd TerminalWinOpen * setlocal nonumber norelativenumber
 augroup END
 
 " Search: ordinary /, n, N for this file, plus one built-in project search.
@@ -312,6 +313,12 @@ function! s:ShowQuickHelp() abort
         \ 'Space s                Normal        Search text under Vim cwd',
         \ 'Space c                Normal        Clear search highlight',
         \ 'Space h                Normal        Show this page',
+        \ 'Mouse drag             All           Highlight and select text',
+        \ 'v / V                  Normal        Select characters / whole lines',
+        \ 'Space y                Visual        Copy highlighted text to system',
+        \ 'Space y                Normal        Copy whole line to system',
+        \ 'Space p                Normal        Paste from system clipboard',
+        \ ':ClipboardHealth       Command       Show clipboard backend and mouse',
         \ 'Tab                    Insert        Suggest word or indent',
         \ 'Tab / Shift+Tab        Completion    Next/previous suggestion',
         \ 'Enter                  Completion    Accept suggestion',
@@ -340,3 +347,130 @@ function! s:ShowQuickHelp() abort
 endfunction
 command! Keys call <SID>ShowQuickHelp()
 nnoremap <silent> <leader>h :<C-U>Keys<CR>
+
+
+" Mouse selection stays inside Vim's Visual mode, not Select mode.
+" This gives the same click, drag, highlight, yank workflow in terminal Vim.
+set mouse=a
+set selectmode=
+set mousemodel=extend
+
+" Prefer Vim's own clipboard registers when the build and desktop support them.
+" Linux uses + for the desktop clipboard; Windows/macOS use * when needed.
+if has('clipboard') && (has('win32') || has('win64') || has('macunix') || !empty($DISPLAY) || !empty($WAYLAND_DISPLAY))
+  if (has('win32') || has('win64') || has('macunix')) || !has('unnamedplus')
+    set clipboard^=unnamed
+  else
+    set clipboard^=unnamedplus
+  endif
+endif
+
+" Use OS tools only when this Vim has no native desktop clipboard.
+" No package manager, plugins, or downloaded code are involved.
+function! s:ClipboardBackend() abort
+  if has('clipboard') && (has('win32') || has('win64') || has('macunix') || !empty($DISPLAY) || !empty($WAYLAND_DISPLAY))
+    return (has('win32') || has('win64') || has('macunix') || !has('unnamedplus')) ? 'vim*' : 'vim+'
+  endif
+  if has('macunix') && executable('pbcopy') && executable('pbpaste')
+    return 'mac'
+  endif
+  if (has('win32') || has('win64')) && executable('clip.exe') && executable('powershell.exe')
+    return 'windows'
+  endif
+  if !empty($WAYLAND_DISPLAY) && executable('wl-copy') && executable('wl-paste')
+    return 'wayland'
+  endif
+  if !empty($DISPLAY) && executable('xclip')
+    return 'xclip'
+  endif
+  if !empty($DISPLAY) && executable('xsel')
+    return 'xsel'
+  endif
+  return ''
+endfunction
+
+function! s:ClipboardCopy() abort
+  let l:backend = s:ClipboardBackend()
+  if empty(l:backend)
+    echohl WarningMsg | echom 'Vim copied internally; system clipboard unavailable. See :ClipboardHealth.' | echohl None
+    return
+  endif
+  if l:backend ==# 'vim+'
+    call setreg('+', getreg('"'), getregtype('"'))
+    return
+  elseif l:backend ==# 'vim*'
+    call setreg('*', getreg('"'), getregtype('"'))
+    return
+  endif
+
+  if l:backend ==# 'mac'
+    let l:command = 'pbcopy'
+  elseif l:backend ==# 'windows'
+    let l:command = 'clip.exe'
+  elseif l:backend ==# 'wayland'
+    let l:command = 'wl-copy'
+  elseif l:backend ==# 'xclip'
+    let l:command = 'xclip -selection clipboard'
+  else
+    let l:command = 'xsel --clipboard --input'
+  endif
+  call system(l:command, getreg('"'))
+  if v:shell_error
+    echohl WarningMsg | echom 'Clipboard copy failed via ' . l:backend | echohl None
+  endif
+endfunction
+
+function! s:ClipboardPaste() abort
+  let l:backend = s:ClipboardBackend()
+  if empty(l:backend)
+    echohl WarningMsg | echom 'System clipboard unavailable. See :ClipboardHealth.' | echohl None
+    return
+  endif
+  if l:backend ==# 'vim+'
+    normal! "+p
+    return
+  elseif l:backend ==# 'vim*'
+    normal! "*p
+    return
+  endif
+
+  if l:backend ==# 'mac'
+    let l:command = 'pbpaste'
+  elseif l:backend ==# 'windows'
+    let l:command = 'powershell.exe -NoProfile -NonInteractive -Command "Get-Clipboard -Raw"'
+  elseif l:backend ==# 'wayland'
+    let l:command = 'wl-paste --no-newline'
+  elseif l:backend ==# 'xclip'
+    let l:command = 'xclip -selection clipboard -o'
+  else
+    let l:command = 'xsel --clipboard --output'
+  endif
+  let l:text = system(l:command)
+  if v:shell_error || empty(l:text)
+    echohl WarningMsg | echom 'Clipboard paste unavailable or empty via ' . l:backend | echohl None
+    return
+  endif
+  " Use a temporary register and restore it to avoid losing an existing yank.
+  let l:prior = getreg('z')
+  let l:prior_type = getregtype('z')
+  try
+    call setreg('z', l:text, 'v')
+    normal! "zp
+  finally
+    call setreg('z', l:prior, l:prior_type)
+  endtry
+endfunction
+
+function! s:ClipboardHealth() abort
+  echo 'Clipboard: ' . (empty(s:ClipboardBackend()) ? 'unavailable' : s:ClipboardBackend())
+        \ . ' | Vim +clipboard: ' . has('clipboard')
+        \ . ' | mouse: ' . &mouse
+endfunction
+command! ClipboardHealth call <SID>ClipboardHealth()
+
+" Consistent keyboard actions regardless of the host terminal's Ctrl/Cmd bindings.
+" Visual selection: Space+y copies to OS; Normal: Space+y copies current line.
+" Space+p pastes OS clipboard in Normal mode. Plain y/p continue to work in Vim.
+xnoremap <silent> <leader>y y:<C-U>call <SID>ClipboardCopy()<CR>
+nnoremap <silent> <leader>y yy:<C-U>call <SID>ClipboardCopy()<CR>
+nnoremap <silent> <leader>p :<C-U>call <SID>ClipboardPaste()<CR>
