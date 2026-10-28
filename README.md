@@ -218,11 +218,52 @@ clipboard. The config reports failure rather than silently copying nowhere.
 Use **`:ClipboardHealth`** to see the selected backend and Vim's feature
 status. It reports detection, not a proven live connection.
 
-**Why not Ctrl+C / Cmd+C?** In terminal Vim, those keystrokes may belong to
-the terminal emulator or signal handling. An ordinary mouse drag is a Vim
-selection, not necessarily a terminal selection. Space+y and Space+p work
-consistently inside Vim without hijacking those shortcuts. Terminal-specific
-Shift-drag or paste shortcuts can still be used where supported.
+### Familiar desktop shortcuts
+
+The preferred workflow is **mouse drag to select**, followed by the system
+copy/paste shortcuts:
+
+| Environment | Copy selection | Paste |
+| --- | --- | --- |
+| Windows native Vim / Windows Terminal | Ctrl+C | Ctrl+V |
+| Linux native Vim / GUI terminals that pass these keys | Ctrl+C | Ctrl+V |
+| MacVim GUI | Command+C | Command+V |
+| macOS iTerm2 | Command+C with the profile mapping below | Command+V (terminal paste) |
+
+Ctrl+C is mapped in **Visual mode only**, so it does not replace Vim's
+normal interrupt/cancel behaviour elsewhere. Ctrl+V is mapped in Normal,
+Insert, and Visual modes; in Visual mode it replaces the selected text.
+This overrides Vim's original Ctrl+V block-selection shortcut. The existing
+Space+y and Space+p are retained as fallback controls rather than primary
+shortcuts.
+
+**Terminal limitation:** a terminal emulator may intercept Ctrl+C/V or
+Command+C/V instead of passing them to Vim. With `mouse=a`, dragging
+normally creates a Vim Visual selection, not a terminal selection. In Windows
+Terminal, Ctrl+C copies a terminal selection if present, but otherwise sends
+the key through to Vim. Ctrl+V is normally intercepted by Windows Terminal
+and pasted from the clipboard; Vim's bracketed-paste support handles this.
+Other terminal programs may use different shortcuts.
+
+**For macOS with iTerm2** (recommended terminal path): open
+*iTerm2 → Settings → Profiles → Keys → Key Mappings*. Set Command+C
+to **Copy or send ^C**. If iTerm2 has a normal terminal selection it will
+copy that; otherwise it sends Ctrl+C to Vim, where our Visual-mode
+mapping copies the selection. Keep Command+V assigned to **Paste**.
+These are iTerm2 settings, not Vim settings, and are not synchronized
+by the vim-config Git repository. For Apple Terminal.app or other Mac
+terminals, their own keybinding behaviour must be configured; the
+`.vimrc` alone cannot see an intercepted Command key.
+
+In a headless SSH session or a terminal without a working clipboard backend,
+native desktop shortcuts cannot guarantee OS clipboard access. Run
+`:ClipboardHealth` to identify the backend.
+
+The Ctrl+C and Ctrl+V maps were tested with Vim 9.1 on Linux using a mock
+X11 clipboard utility. Visual-mode Ctrl+C copied the selected text,
+Ctrl+V pasted in Normal and Insert modes, and Ctrl+V replaced a selection
+in Visual mode. Windows Terminal, Linux graphical terminals, iTerm2, and
+MacVim must still be checked on their actual systems.
 
 When a program is running in a Vim terminal pane, use
 **Ctrl+W then N** to enter Terminal-Normal mode before using Vim's text
