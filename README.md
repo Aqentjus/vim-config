@@ -323,6 +323,10 @@ We should test this on your Windows and macOS machines before promoting it.
 
 ## Decision 12: One-command portable installation
 
+**These installers are on staging only until tested on Windows and macOS.**
+The commands below explicitly clone staging. After promotion to production,
+a normal default-branch clone will work without `--branch staging`.
+
 The installers require **Vim already installed**, and Git to clone the
 repository. They do not install software packages, Vim plugins, or change
 machine-wide settings, and **do not require administrator/sudo privileges**.
@@ -330,7 +334,7 @@ machine-wide settings, and **do not require administrator/sudo privileges**.
 ### macOS / Linux
 
 ```sh
-git clone https://github.com/Aqentjus/vim-config.git
+git clone --branch staging https://github.com/Aqentjus/vim-config.git
 cd vim-config
 sh ./install.sh
 ```
@@ -344,7 +348,7 @@ again against the same checkout is a no-op.
 ### Native Windows (PowerShell)
 
 ```powershell
-git clone https://github.com/Aqentjus/vim-config.git
+git clone --branch staging https://github.com/Aqentjus/vim-config.git
 cd vim-config
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
