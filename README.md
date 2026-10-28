@@ -75,8 +75,25 @@ affects Vim; it does not silence Windows or other applications.
 - File opening and Space then e never hide the sidebar.
 - The initial directory is chosen **only at startup**; subsequent edits do
   not forcibly reset the folder you're browsing.
-- The sidebar uses Vim's bundled netrw. The only startup customization is a
-  short `VimEnter` hook that opens it once and returns focus to the editor.
+- The sidebar uses Vim's bundled netrw. A `VimEnter` hook opens it once
+  and returns focus to the editor.
+- **Enter on a file in the explorer always targets the existing editor window.**
+  The hook explicitly stores that window's number in `g:netrw_chgwin` and uses
+  `g:netrw_browse_split=0` so netrw respects the target instead of replacing
+  the explorer buffer. It determines the target from the actual editing window,
+  rather than assuming it must always be window number 2.
+- `production` is unchanged while this correction is tested on macOS.
+
+### Regression check: editor vs. explorer
+
+This corrects a macOS report where opening a file from the tree replaced
+the tree itself. The issue can be reproduced if netrw's `g:netrw_chgwin`
+mistakenly points at the explorer (window 1).
+
+Locally tested using Vim 9.1 on Linux: starting with either netrw's default
+target or a deliberately incorrect target, opening a file with Enter retained
+the explorer on the left and loaded the chosen file on the right. macOS
+requires confirmation using the user's installed Vim build.
 
 ## Decision 5: Single-file code runner
 
