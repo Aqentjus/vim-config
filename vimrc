@@ -43,6 +43,8 @@ endif
 let mapleader = ' '
 nnoremap <Space> <Nop>
 let g:netrw_winsize = 25
+" Use netrw's designated editing window, not its current explorer window.
+let g:netrw_browse_split = 0
 filetype plugin indent on
 
 " Open the sidebar once at startup and keep focus on the editing window.
@@ -59,7 +61,11 @@ function! s:OpenExplorerOnStart() abort
 
   let l:editor_window = win_getid()
   execute 'Lexplore ' . fnameescape(l:directory)
-  if win_id2win(l:editor_window) > 0
+  " Remember the actual editor window for netrw's Enter action.
+  " This avoids relying on netrw's possibly stale/default window number.
+  let l:editor_nr = win_id2win(l:editor_window)
+  if l:editor_nr > 0
+    let g:netrw_chgwin = l:editor_nr
     call win_gotoid(l:editor_window)
   endif
 endfunction
