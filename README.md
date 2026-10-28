@@ -8,8 +8,8 @@ A portable Vim setup, designed one decision at a time.
 - `production` is the intended stable branch: only agreed, checked changes belong there.
 
 The current setup includes the theme, explorer shortcuts, single-file runner,
-and basic editing, search, completion, and help facilities. An installer will
-be designed separately.
+editing, search, completion, clipboard support, and portable installers.
+All changes are tested first on staging; production stays stable.
 
 ## Decision 1: Gruvbox
 
@@ -299,29 +299,98 @@ Vim's `TerminalWinOpen` to prevent a startup error.
 Actual GUI mouse dragging and native Windows, macOS, and Linux desktop
 clipboard integration still require checks in those environments.
 
-## Try the staging version
+## Decision 11: Built-in explorer tree
 
-Install Git and a full Vim build with evaluation and syntax support, then:
+The permanent left sidebar now uses netrw's built-in **tree-style** listing,
+with the informational banner hidden. These are only two netrw settings:
+`g:netrw_liststyle=3` and `g:netrw_banner=0`. No NERDTree,
+Neo-tree, icon dependency, or plugin manager is installed.
+
+- **Enter** on a directory expands/collapses the corresponding branch.
+- **Enter** on a file continues to open it in the large editor window.
+- **Space then e** only changes focus, never hides the explorer.
+- **Space then n** still creates a file or folder in the directory currently
+  being browsed. It now refreshes the tree without replacing the editor pane.
+- **i** in netrw cycles through the built-in listing styles if you prefer
+  to compare thin, long, wide, or tree views.
+
+The tree changes were tested on Vim 9.1 (Linux), including nested directory
+expansion, opening files in the right-hand pane, and refreshing after creating
+a new file. Tree-mode Windows compatibility is **not yet verified**. Some
+recent Windows Vim/netrw versions have a reported tree-mode navigation bug:
+https://github.com/vim/vim/issues/19264
+We should test this on your Windows and macOS machines before promoting it.
+
+## Decision 12: One-command portable installation
+
+The installers require **Vim already installed**, and Git to clone the
+repository. They do not install software packages, Vim plugins, or change
+machine-wide settings, and **do not require administrator/sudo privileges**.
+
+### macOS / Linux
 
 ```sh
-git clone --branch staging https://github.com/Aqentjus/vim-config.git
+git clone https://github.com/Aqentjus/vim-config.git
 cd vim-config
+sh ./install.sh
+```
+
+This creates `~/.vimrc` as a symbolic link directly to the cloned
+`vimrc`. The colour scheme remains inside the checkout; the
+configuration locates it relative to its real file path. Previous `~/.vimrc`
+is moved to a timestamped backup before installing. Running the installer
+again against the same checkout is a no-op.
+
+### Native Windows (PowerShell)
+
+```powershell
+git clone https://github.com/Aqentjus/vim-config.git
+cd vim-config
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+Inspect the script before invoking it. The execution-policy setting applies
+only to that PowerShell process; it is not a permanent change to Windows.
+
+The script creates `~\_vimrc` containing a tiny Vimscript loader
+pointing to this checkout's `vimrc`, rather than creating a symlink.
+Windows therefore needs no Developer Mode or elevated permissions. It
+backs up an existing `_vimrc` with a timestamp, and running the same
+installer twice does not create extra backups.
+
+Note: `_vimrc` takes precedence over `.vimrc` on native Windows Vim.
+An existing `.vimrc` is left untouched, so you can restore it later.
+
+### Testing staging without replacing the installed configuration
+
+From a normal clone on the default `production` branch:
+
+```sh
+git switch --track origin/staging
 vim -u ./vimrc
 ```
 
-This loads this repository's configuration for that Vim session without
-installing it over your personal configuration. The config explicitly selects
-Vim defaults (`set nocompatible`), which are needed because `-u` by itself does
-not disable Vi compatibility mode.
+This runs the staging configuration for that Vim session without installing
+it. If you decide to install staging, run the appropriate installer in that
+checkout. The loader follows whichever branch you check out there.
 
-The same commands work in PowerShell when `git` and `vim` are on `PATH`.
-Run `vim -u ./vimrc` from inside the cloned repository, on `staging`.
+### Updates, backups and limitations
 
-The config enables true colour when Vim supports it and either its built-in
-`has('vcon')` check detects a working Windows virtual console, or the terminal
-advertises `COLORTERM=truecolor` or `COLORTERM=24bit`. An already-enabled
-`termguicolors` setting is preserved. Otherwise Gruvbox uses its 256-colour
-approximations. A terminal with neither capability uses Vim's default scheme.
+From the **same checkout that you installed**, run `git pull --ff-only`,
+then restart Vim. Since the config points into the checkout, no second copy
+step is required. Do not move or delete the checkout while it is installed.
+
+If you want to undo installation, remove the installed link/loader and restore
+the timestamped `.vimrc.backup.*` or `_vimrc.backup.*`
+file that the script printed. Neither installer modifies existing Vim plugin
+directories, so separately installed plugins on an older machine might still
+load. This configuration itself fetches no plugins.
+
+The macOS/Linux installer was tested on Linux with pre-existing config,
+a path containing spaces, repeated installation, backups, and updated Vim
+settings loaded from the checkout. The generated Windows loader syntax was
+tested in Vim with spaces and apostrophes in paths. PowerShell itself has not
+been run on Windows in the test environment.
 
 ## Validation
 

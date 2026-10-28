@@ -43,6 +43,9 @@ endif
 let mapleader = ' '
 nnoremap <Space> <Nop>
 let g:netrw_winsize = 25
+" Built-in explorer: compact expandable tree without a plugin manager.
+let g:netrw_liststyle = 3
+let g:netrw_banner = 0
 " Use netrw's designated editing window, not its current explorer window.
 let g:netrw_browse_split = 0
 filetype plugin indent on
@@ -118,8 +121,9 @@ function! s:CreateEntry() abort
     return
   endtry
 
-  " Use netrw's own refresh mapping and keep focus in the explorer.
-  execute "normal \<C-L>"
+  " In tree mode Ctrl-L can move netrw into the editor window.
+  " Refresh the existing tree buffer without changing its destination.
+  call netrw#LocalBrowseCheck(b:netrw_curdir)
 endfunction
 
 nnoremap <silent> <leader>e :<C-U>call <SID>FocusExplorer()<CR>
@@ -313,7 +317,8 @@ function! s:ShowQuickHelp() abort
         \ '----------------------------------------------',
         \ 'Space e                Normal        Focus left explorer',
         \ 'Space n                Explorer      Create file or /folder',
-        \ 'Enter                  Explorer      Open file or directory',
+        \ 'Enter                  Explorer      Open file / expand folder tree',
+        \ 'i                      Explorer      Cycle built-in listing styles',
         \ 'Space r                Normal        Save and run source file',
         \ 'Space f                Normal        Find file by name (:find)',
         \ 'Space s                Normal        Search text under Vim cwd',
