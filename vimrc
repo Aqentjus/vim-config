@@ -31,12 +31,31 @@ else
   colorscheme default
 endif
 
-" Explorer: Space+e focuses an existing explorer; it never toggles its visibility.
+" Explorer: always visible from startup. Space+e only changes keyboard focus.
 " Enter keeps netrw's normal open behavior.
 let mapleader = ' '
 nnoremap <Space> <Nop>
 let g:netrw_winsize = 25
 filetype plugin on
+
+" Open the sidebar once at startup and keep focus on the editing window.
+" Passing an explicit directory ensures 'vim path/to/file' browses that folder.
+function! s:OpenExplorerOnStart() abort
+  let l:file = expand('%:p')
+  if empty(expand('%'))
+    let l:directory = getcwd()
+  elseif isdirectory(l:file)
+    let l:directory = l:file
+  else
+    let l:directory = fnamemodify(l:file, ':h')
+  endif
+
+  let l:editor_window = win_getid()
+  execute 'Lexplore ' . fnameescape(l:directory)
+  if win_id2win(l:editor_window) > 0
+    call win_gotoid(l:editor_window)
+  endif
+endfunction
 
 function! s:FocusExplorer() abort
   for window in range(1, winnr('$'))
@@ -93,5 +112,6 @@ endfunction
 nnoremap <silent> <leader>e :<C-U>call <SID>FocusExplorer()<CR>
 augroup VimConfigExplorer
   autocmd!
+  autocmd VimEnter * call <SID>OpenExplorerOnStart()
   autocmd FileType netrw nnoremap <silent> <buffer> <leader>n :<C-U>call <SID>CreateEntry()<CR>
 augroup END

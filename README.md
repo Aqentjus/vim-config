@@ -29,7 +29,7 @@ The leader key is **Space**. Press the keys in sequence in Normal mode
 
 | Keys | Action |
 | --- | --- |
-| Space, then `e` | Focus an existing explorer in this tab. Does not open or close panes. |
+| Space, then `e` | Focus the persistent left explorer; never opens or closes it. |
 | Enter in the explorer | Open a file in the editing pane, or enter a directory. |
 | Space, then `n` in the explorer | Prompt for a new file or directory. |
 
@@ -44,13 +44,13 @@ At the prompt:
   not part of this prompt.
 
 After creation the listing refreshes and focus stays in the explorer. Use
-Enter to open the new entry. The sidebar uses 25% of the available width
-when opened with `:Lexplore`.
+Enter to open the new entry. The sidebar uses 25% of the available width.
 
-**Space then e never toggles the sidebar.** If the explorer is not open,
-a message explains that you can run `:Lexplore` to open it. That built-in
-command is a toggle, so only use it intentionally when you need to show
-or hide the sidebar. Space then e only changes keyboard focus.
+**The explorer opens automatically every time Vim starts.** It stays on the
+left when you open files through Enter. The editing pane remains focused
+initially; Space then e moves the cursor into the explorer without toggling
+anything. Deliberately closing the pane with an explicit window command can
+still close it; this configuration does not intercept Quit.
 
 This uses Vim's bundled **netrw** explorer. Enter and directory navigation
 remain netrw's own behavior. Our two helpers only focus the explorer and
@@ -63,6 +63,19 @@ Vim's invalid-key and cursor-boundary sounds are silenced using
 `belloff=all` and `noerrorbells`. `visualbell` with an empty `t_vb`
 also prevents Vim's visual bell from flashing the screen. This only
 affects Vim; it does not silence Windows or other applications.
+
+## Decision 4: Persistent explorer
+
+- Running `vim justus.txt` opens the file on the right and its containing
+  directory in the always-visible left explorer.
+- Running `vim path/to/justus.txt` starts the explorer inside `path/to`,
+  even if Vim was launched from a different working directory.
+- Running `vim` without a filename shows the current working directory.
+- File opening and Space then e never hide the sidebar.
+- The initial directory is chosen **only at startup**; subsequent edits do
+  not forcibly reset the folder you're browsing.
+- The sidebar uses Vim's bundled netrw. The only startup customization is a
+  short `VimEnter` hook that opens it once and returns focus to the editor.
 
 ## Try the staging version
 
@@ -101,5 +114,8 @@ The focus-only explorer mapping was exercised with Vim 9.1 (huge build):
 without an explorer it leaves the layout unchanged; with a netrw window
 open it focuses that window, and repeating the command does not close it.
 Vim reported `belloff=all`, `noerrorbells`, `visualbell`, and an empty
-`t_vb` in the same test. Native Windows execution of these changes still
-needs to be checked on the actual machine.
+`t_vb` in the same test. The persistent explorer startup was also tested locally using Vim 9.1 in a
+real terminal: starting with no filename, opening a file in a nested folder,
+focusing the explorer, and opening a different file through Enter all kept
+a two-pane layout. Native Windows execution still needs to be checked
+on the actual machine.
