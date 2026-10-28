@@ -7,8 +7,8 @@ A portable Vim setup, designed one decision at a time.
 - `staging` is the development branch: experiments and changes are reviewed here.
 - `production` is the intended stable branch: only agreed, checked changes belong there.
 
-The current setup includes the theme and explorer shortcuts. An installer
-and the remaining editor behaviour will be designed separately.
+The current setup includes the theme, explorer shortcuts, and a single-file
+code runner. An installer and remaining behaviour will be designed separately.
 
 ## Decision 1: Gruvbox
 
@@ -77,6 +77,61 @@ affects Vim; it does not silence Windows or other applications.
 - The sidebar uses Vim's bundled netrw. The only startup customization is a
   short `VimEnter` hook that opens it once and returns focus to the editor.
 
+## Decision 5: Single-file code runner
+
+In the source-file pane, press Escape, then **Space, r**. The runner saves
+that file and opens a new 12-row terminal at the bottom. The file and explorer
+remain visible. Input goes to the running program, and output stays visible
+after it exits. Each run gets a new pane; existing runs are not killed or reused.
+
+| File extension | Command selection |
+| --- | --- |
+| `.py` | Active `VIRTUAL_ENV` interpreter; otherwise `py -3` on Windows when available, then `python3` or `python`. Python 3 is expected. |
+| `.c` | First available `cc`, `gcc`, or `clang`; compile as C17 with `-Wall -Wextra`, then run. |
+| `.cpp`, `.cc`, `.cxx`, `.C` | First available `c++`, `g++`, or `clang++`; compile as C++17 with `-Wall -Wextra`, then run. |
+| `.js` | `node` runs the file directly; no npm command or package installation. |
+| `.sh` | `bash` runs the file. On native Windows this requires a working native Bash environment, not merely a WSL launcher. |
+
+The operating-system check is automatic. macOS and Linux use the same Unix
+path for compilation; native Windows uses `cmd.exe`. No `system = "mac"`
+setting is required. Tools must already be installed and discoverable on
+`PATH`. Missing tools produce a message without opening an empty terminal.
+Vim itself must have `+terminal` support.
+
+### What compiling means
+
+Python source is passed to the Python interpreter. C/C++ source is first
+translated into an executable by the compiler. This runner uses `&&` to
+execute that result only after successful compilation. Errors stay in the
+terminal and an old program is never used as a fallback.
+
+This first version runs **one source file**, not an entire project. A complete
+program in `main.c` works. A project with `main.c` plus `sensor.c`, library
+linking requirements, a Pico SDK, or a build system needs its own build command.
+The runner deliberately does not guess those commands or invoke a package manager.
+
+### Behaviour and controls
+
+- The process runs in the source file's directory, independent of the
+  directory currently browsed in the explorer.
+- A failed save stops the run instead of executing the old file on disk.
+- Interpreted commands use argument lists. Compiled commands pass paths in
+  quoted environment variables, avoiding filename interpolation into shell code.
+- C/C++ executables use a temporary path and are removed on process exit.
+  No executable is written over an existing file in the project.
+- Completion is reported as `Runner: process exited with code N` in Vim's
+  messages; output and errors remain in the terminal.
+- **Ctrl+W, w** switches panes using Vim's existing terminal controls.
+- **Ctrl+W, N** enters Terminal-Normal mode for scrolling or normal mappings;
+  press `i` to send input to a still-running program again.
+- After the program exits, **Ctrl+W, c** closes that output pane. A running
+  program can normally be interrupted with **Ctrl+C** while its terminal is focused.
+
+No new editor plugin, package manager, runtime download, or custom process
+manager is introduced. Only a dispatch function and an exit/cleanup callback
+are added to `vimrc`. Interpreters, compilers, and their installed launchers
+remain external programs with their own configuration.
+
 ## Try the staging version
 
 Install Git and a full Vim build with evaluation and syntax support, then:
@@ -119,3 +174,11 @@ real terminal: starting with no filename, opening a file in a nested folder,
 focusing the explorer, and opening a different file through Enter all kept
 a two-pane layout. Native Windows execution still needs to be checked
 on the actual machine.
+
+The single-file runner was tested with Vim 9.1.1244 (huge build, +terminal)
+on Linux. Passing checks covered Python, C, C++, JavaScript, Bash, interactive
+Python/C input, automatic saving, filenames with spaces and shell-special
+characters, source-directory working paths, compile/runtime failures, missing
+tools, unsupported extensions, failed saves, and visible source/explorer/output
+panes. Temporary-executable cleanup was checked too. Native Windows and macOS
+execution have not been tested here; these branches remain staging work.
