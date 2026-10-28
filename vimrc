@@ -7,6 +7,12 @@ set noerrorbells
 set visualbell
 set t_vb=
 
+" Editing: absolute line numbers and predictable two-space indents.
+" Python uses its conventional four spaces.
+set number
+set autoindent expandtab
+set tabstop=2 shiftwidth=2 softtabstop=2
+
 " Requires a full Vim build with syntax support and the bundled netrw explorer.
 " Resolve this file's location so `vim -u /path/to/vimrc` finds our colour file.
 let s:config_dir = fnamemodify(resolve(expand('<sfile>:p')), ':h')
@@ -36,7 +42,7 @@ endif
 let mapleader = ' '
 nnoremap <Space> <Nop>
 let g:netrw_winsize = 25
-filetype plugin on
+filetype plugin indent on
 
 " Open the sidebar once at startup and keep focus on the editing window.
 " Passing an explicit directory ensures 'vim path/to/file' browses that folder.
@@ -207,3 +213,130 @@ function! s:CodeRunner() abort
 endfunction
 
 nnoremap <silent> <leader>r :<C-U>call <SID>CodeRunner()<CR>
+
+" Disable line numbers for navigation and terminal buffers.
+augroup VimConfigEditing
+  autocmd!
+  autocmd FileType netrw setlocal nonumber norelativenumber
+  autocmd FileType python setlocal tabstop=4 shiftwidth=4 softtabstop=4
+  autocmd TermOpen * setlocal nonumber norelativenumber
+augroup END
+
+" Search: ordinary /, n, N for this file, plus one built-in project search.
+set incsearch hlsearch ignorecase smartcase
+set path+=**
+nnoremap <leader>f :find<Space>
+nnoremap <silent> <leader>c :nohlsearch<CR>
+
+function! s:SearchProject() abort
+  let l:query = input('Search recursively from current directory: ')
+  redraw
+  if empty(l:query)
+    return
+  endif
+  " Very nomagic treats the user's query as literal text.
+  try
+    execute 'silent vimgrep /\V' . escape(l:query, '/\') . '/gj **/*
+    copen
+  catch /^Vim\%((\a\+)\)\=:E480/
+    echo 'No matching files or text found.'
+  catch /^Vim/
+    echo 'Search failed: ' . v:exception
+  endtry
+endfunction
+nnoremap <silent> <leader>s :<C-U>call <SID>SearchProject()<CR>
+
+" Completion: no language server, no plugin. Tab offers words from buffers.
+" Python gets a compact curated list of common built-in calls (including print()).
+let s:python_calls = [
+      \ 'print()', 'input()', 'range()', 'len()', 'enumerate()',
+      \ 'int()', 'float()', 'str()', 'list()', 'dict()', 'set()',
+      \ 'tuple()', 'type()', 'isinstance()', 'open()', 'sum()',
+      \ 'min()', 'max()', 'sorted()', 'zip()', 'map()', 'filter()',
+      \ 'abs()', 'all()', 'any()', 'bool()', 'dir()', 'help()',
+      \ 'super()', 'repr()', 'round()', 'next()', 'iter()'
+      \ ]
+
+function! s:PythonComplete(findstart, base) abort
+  if a:findstart
+    let l:start = col('.') - 1
+    let l:line = getline('.')
+    while l:start > 0 && l:line[l:start - 1] =~# '\k'
+      let l:start -= 1
+    endwhile
+    return l:start
+  endif
+  return filter(copy(s:python_calls), 'stridx(v:val, a:base) == 0')
+endfunction
+
+augroup VimConfigCompletion
+  autocmd!
+  autocmd FileType python let &l:completefunc = expand('<SID>') . 'PythonComplete'
+augroup END
+
+set completeopt=menuone,noinsert
+function! s:SmartTab() abort
+  if pumvisible()
+    return "\<C-n>"
+  endif
+  let l:before = strpart(getline('.'), 0, col('.') - 1)
+  let l:prefix = matchstr(l:before, '\k\+$')
+  if empty(l:prefix)
+    return "\<Tab>"
+  endif
+  if &filetype ==# 'python' && !empty(filter(copy(s:python_calls), 'stridx(v:val, l:prefix) == 0'))
+    return "\<C-x>\<C-u>"
+  endif
+  return "\<C-n>"
+endfunction
+inoremap <expr> <Tab> <SID>SmartTab()
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
+
+" Self-contained cheat sheet. Native :help is untouched.
+function! s:ShowQuickHelp() abort
+  tabnew
+  setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile
+  setlocal modifiable nowrap nonumber norelativenumber
+  let l:lines = [
+        \ 'VIM CONFIGURATION - QUICK HELP',
+        \ '==============================================',
+        \ '',
+        \ 'KEY OR COMMAND         MODE          ACTION',
+        \ '----------------------------------------------',
+        \ 'Space e                Normal        Focus left explorer',
+        \ 'Space n                Explorer      Create file or /folder',
+        \ 'Enter                  Explorer      Open file or directory',
+        \ 'Space r                Normal        Save and run source file',
+        \ 'Space f                Normal        Find file by name (:find)',
+        \ 'Space s                Normal        Search text under Vim cwd',
+        \ 'Space c                Normal        Clear search highlight',
+        \ 'Space h                Normal        Show this page',
+        \ 'Tab                    Insert        Suggest word or indent',
+        \ 'Tab / Shift+Tab        Completion    Next/previous suggestion',
+        \ 'Enter                  Completion    Accept suggestion',
+        \ 'Ctrl+E                 Completion    Cancel suggestions',
+        \ '/text / ?text          Normal        Search forward / backward',
+        \ 'n / N                  Normal        Next / previous match',
+        \ ':cnext / :cprev        Command       Next / previous search result',
+        \ ':copen / :cclose      Command       Show / hide search results',
+        \ 'Ctrl+W, W              Normal        Next window',
+        \ 'Ctrl+W, N              Terminal      Leave terminal input mode',
+        \ ':pwd / :cd {path}       Command       Check / change working directory',
+        \ ':Lexplore               Command       Toggle explorer manually',
+        \ ':w / :q / :wq         Command       Save / quit / save and quit',
+        \ ':Keys                  Command       Show this page',
+        \ ':terminal               Command       Start built-in terminal',
+        \ ':help {topic}          Command       Vim built-in documentation',
+        \ '',
+        \ 'C / C++: single file only. Python: selected common built-ins + buffer words.',
+        \ 'Search from :pwd; :cd {directory} changes the search root.',
+        \ 'Press q to close this help tab.'
+        \ ]
+  call setline(1, l:lines)
+  setlocal nomodified nomodifiable
+  nnoremap <silent> <buffer> q :tabclose<CR>
+  normal! gg
+endfunction
+command! Keys call <SID>ShowQuickHelp()
+nnoremap <silent> <leader>h :<C-U>Keys<CR>
