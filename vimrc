@@ -313,6 +313,11 @@ function! s:ShowQuickHelp() abort
         \ 'Space s                Normal        Search text under Vim cwd',
         \ 'Space c                Normal        Clear search highlight',
         \ 'Space h                Normal        Show this page',
+        \ 'Ctrl+C                 Visual        Copy selection to system',
+        \ 'Ctrl+V                 Normal/Insert Paste from system',
+        \ 'Ctrl+V                 Visual        Replace selection with paste',
+        \ 'Cmd+C / Cmd+V          MacVim GUI    Native copy / paste',
+        \ 'Cmd+C / Cmd+V          macOS terminal Requires terminal key setup',
         \ 'Mouse drag             All           Highlight and select text',
         \ 'v / V                  Normal        Select characters / whole lines',
         \ 'Space y                Visual        Copy highlighted text to system',
@@ -420,17 +425,26 @@ function! s:ClipboardCopy() abort
   endif
 endfunction
 
-function! s:ClipboardPaste() abort
+function! s:ClipboardPaste(...) abort
+  let l:replace = a:0 && a:1
   let l:backend = s:ClipboardBackend()
   if empty(l:backend)
     echohl WarningMsg | echom 'System clipboard unavailable. See :ClipboardHealth.' | echohl None
     return
   endif
   if l:backend ==# 'vim+'
-    normal! "+p
+    if l:replace
+      normal! gv"+p
+    else
+      normal! "+p
+    endif
     return
   elseif l:backend ==# 'vim*'
-    normal! "*p
+    if l:replace
+      normal! gv"*p
+    else
+      normal! "*p
+    endif
     return
   endif
 
@@ -455,7 +469,11 @@ function! s:ClipboardPaste() abort
   let l:prior_type = getregtype('z')
   try
     call setreg('z', l:text, 'v')
-    normal! "zp
+    if l:replace
+      normal! gv"zp
+    else
+      normal! "zp
+    endif
   finally
     call setreg('z', l:prior, l:prior_type)
   endtry
@@ -474,3 +492,19 @@ command! ClipboardHealth call <SID>ClipboardHealth()
 xnoremap <silent> <leader>y y:<C-U>call <SID>ClipboardCopy()<CR>
 nnoremap <silent> <leader>y yy:<C-U>call <SID>ClipboardCopy()<CR>
 nnoremap <silent> <leader>p :<C-U>call <SID>ClipboardPaste()<CR>
+
+" Native desktop-style shortcuts when Vim receives the keystrokes.
+" Terminal emulators may intercept these before they reach Vim.
+" Ctrl+C is mapped only in Visual mode: elsewhere it still interrupts.
+xnoremap <silent> <C-c> y:<C-U>call <SID>ClipboardCopy()<CR>
+nnoremap <silent> <C-v> :<C-U>call <SID>ClipboardPaste()<CR>
+inoremap <silent> <C-v> <C-o>:call <SID>ClipboardPaste()<CR>
+xnoremap <silent> <C-v> :<C-U>call <SID>ClipboardPaste(1)<CR>
+
+" MacVim GUI receives the actual Command modifier. Terminal Vim does not.
+if has('macunix') && has('gui_running')
+  xnoremap <silent> <D-c> y:<C-U>call <SID>ClipboardCopy()<CR>
+  nnoremap <silent> <D-v> :<C-U>call <SID>ClipboardPaste()<CR>
+  inoremap <silent> <D-v> <C-o>:call <SID>ClipboardPaste()<CR>
+  xnoremap <silent> <D-v> :<C-U>call <SID>ClipboardPaste(1)<CR>
+endif
