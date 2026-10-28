@@ -236,7 +236,7 @@ function! s:SearchProject() abort
   endif
   " Very nomagic treats the user's query as literal text.
   try
-    execute 'silent vimgrep /\V' . escape(l:query, '/\') . '/gj **/*
+    execute 'silent vimgrep /\V' . escape(l:query, '/\') . '/gj **/*'
     copen
   catch /^Vim\%((\a\+)\)\=:E480/
     echo 'No matching files or text found.'
