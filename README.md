@@ -7,8 +7,9 @@ A portable Vim setup, designed one decision at a time.
 - `staging` is the development branch: experiments and changes are reviewed here.
 - `production` is the intended stable branch: only agreed, checked changes belong there.
 
-The current setup includes the theme, explorer shortcuts, and a single-file
-code runner. An installer and remaining behaviour will be designed separately.
+The current setup includes the theme, explorer shortcuts, single-file runner,
+and basic editing, search, completion, and help facilities. An installer will
+be designed separately.
 
 ## Decision 1: Gruvbox
 
@@ -132,6 +133,57 @@ manager is introduced. Only a dispatch function and an exit/cleanup callback
 are added to `vimrc`. Interpreters, compilers, and their installed launchers
 remain external programs with their own configuration.
 
+## Decision 6: Line numbers and indentation
+
+- Code buffers use absolute line numbers; the explorer, terminal, and help
+  page do not display them.
+- Vim's built-in filetype indentation and autoindent are enabled.
+- Tabs insert spaces. The default width is **2 spaces**, including C/C++
+  and JavaScript. Python uses its conventional **4 spaces**.
+- No external formatter, indentation engine, or plugin is installed.
+
+## Decision 7: Search
+
+- `/text` and `?text`: search forward/backward in the current file.
+- `n` and `N`: next/previous match.
+- Incremental highlighting, case-insensitive search by default, and
+  uppercase-sensitive matching (`ignorecase` + `smartcase`).
+- **Space then c**: clear search highlighting.
+- **Space then f**: start built-in `:find` filename lookup (type a filename
+  and Enter). Vim's path contains recursive `**`.
+- **Space then s**: prompt for literal text, recursively run built-in
+  `:vimgrep` from the **current working directory**, and show quickfix
+  results. Navigate with `:cnext` and `:cprev`, close with `:cclose`.
+
+Check the search root using `:pwd` or change it with `:cd path`. For
+project-wide searching, start Vim in that project's root directory.
+`:vimgrep` may be slower for very large trees; no external `rg`,
+package manager, or search plugin is required.
+
+## Decision 8: Insert-mode Tab completion
+
+- On an empty/indented line, Tab inserts indentation as usual.
+- After a word prefix, Tab shows keyword suggestions using Vim's built-in
+  completion from open buffers.
+- Python also has a small, explicit list of common built-in calls,
+  including `print()`. In a new `.py` file, type `pri`, then Tab,
+  then Enter to accept `print()`.
+- While suggestions are open, Tab cycles forward; Shift+Tab cycles back
+  when the terminal supports that key combination.
+- Enter accepts a selected candidate; Ctrl+E cancels completion.
+
+This is intentionally **not IDE/LSP semantic completion**: it does not
+understand imports, types, every library API, or whole-project symbols.
+Only common Python built-ins are bundled as callable suggestions; other
+languages use matching words already present in buffers.
+
+## Decision 9: Keyboard reference
+
+Press **Space then h** or type **`:Keys`** to open a simple, self-contained
+table of shortcuts and everyday commands in a temporary Vim tab.
+Press **q** to close that tab and return to the editor and explorer.
+Native `:help {topic}` remains unchanged and available.
+
 ## Try the staging version
 
 Install Git and a full Vim build with evaluation and syntax support, then:
@@ -182,3 +234,9 @@ characters, source-directory working paths, compile/runtime failures, missing
 tools, unsupported extensions, failed saves, and visible source/explorer/output
 panes. Temporary-executable cleanup was checked too. Native Windows and macOS
 execution have not been tested here; these branches remain staging work.
+
+The new editor features were tested with Vim 9.1 (huge, terminal build) on
+Linux: `pri<Tab><Enter>` generated `print()` in Python; a JavaScript buffer
+word completed; Python and C indented by four and two spaces respectively;
+recursive search populated quickfix; and `:Keys` and Space then h opened the
+closable help tab. Native Windows and macOS runs still require verification.
