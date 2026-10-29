@@ -356,6 +356,9 @@ function! s:ShowQuickHelp() abort
         \ 'Search from :pwd; :cd {directory} changes the search root.',
         \ 'Press q to close this help tab.'
         \ ]
+  for l:extension_help in values(get(g:, 'vim_config_extension_help', {}))
+    call extend(l:lines, l:extension_help)
+  endfor
   call setline(1, l:lines)
   setlocal nomodified nomodifiable
   nnoremap <silent> <buffer> q :tabclose<CR>
@@ -519,3 +522,14 @@ if has('macunix') && has('gui_running')
   inoremap <silent> <D-v> <C-o>:call <SID>ClipboardPaste()<CR>
   xnoremap <silent> <D-v> :<C-U>call <SID>ClipboardPaste(1)<CR>
 endif
+
+" Load our own installed extensions, never scripts from the opened project.
+" Missing folders are fine; a broken optional extension must not block startup.
+for s:extension in globpath(escape(s:config_dir . '/extensions', ','), '*/init.vim', 0, 1)
+  try
+    execute 'silent source ' . fnameescape(s:extension)
+  catch
+    " Skip unavailable extensions quietly. Explicit build/flash errors stay visible.
+  endtry
+endfor
+unlet! s:extension
