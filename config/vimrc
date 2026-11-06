@@ -287,7 +287,7 @@ if isdirectory(s:config_dir . '/pack/coc/start/coc.nvim')
   nmap <silent> gr <Plug>(coc-references)
   nmap <silent> [d <Plug>(coc-diagnostic-prev)
   nmap <silent> ]d <Plug>(coc-diagnostic-next)
-  nmap <silent> <leader>rn <Plug>(coc-rename)
+  nmap <silent> <leader>R <Plug>(coc-rename)
   nnoremap <silent> K :call CocActionAsync('doHover')<CR>
 endif
 
@@ -329,7 +329,7 @@ function! s:ShowQuickHelp() abort
         \ 'gd / gr                Normal        Definition / references (CoC)',
         \ 'K                      Normal        Hover documentation (CoC)',
         \ '[d / ]d                Normal        Previous / next diagnostic (CoC)',
-        \ 'Space r n              Normal        Rename symbol (CoC)',
+        \ 'Space R                Normal        Rename symbol (CoC)',
         \ ':CocInfo               Command       Check coc.nvim and language servers',
         \ '/text / ?text          Normal        Search forward / backward',
         \ 'n / N                  Normal        Next / previous match',

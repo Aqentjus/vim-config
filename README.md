@@ -80,7 +80,7 @@ Use `:CocConfig` to edit the JSON file within your private Vim folder.
 | gd / gr | Definition / references |
 | K | Hover information |
 | [d / ]d | Previous / next diagnostic |
-| Space r n | Rename symbol |
+| Space R | Rename symbol |
 | :CocInfo / :CocConfig | CoC health / config |
 | :BuildPico / :build_pico | Configure and build Pico project |
 | :FlashPico / :flash_pico | Build, SWD flash and verify |
