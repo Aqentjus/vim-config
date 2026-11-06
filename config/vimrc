@@ -25,7 +25,22 @@ let &packpath = escape(s:config_dir, ',') . ',' . &packpath
 " Keep coc.nvim's settings, downloaded extensions and data together.
 let g:coc_config_home = s:config_dir
 let g:coc_data_home = s:config_dir . '/coc-data'
-let g:coc_global_extensions = ['coc-clangd', 'coc-pyright']
+" Install missing CoC extensions on launch; versions are deliberately unpinned.
+let g:coc_global_extensions = [
+      \ 'coc-clangd',
+      \ 'coc-pyright',
+      \ 'coc-html',
+      \ 'coc-css',
+      \ 'coc-tsserver',
+      \ 'coc-json',
+      \ 'coc-yaml',
+      \ 'coc-sh',
+      \ 'coc-powershell',
+      \ 'coc-docker',
+      \ 'coc-luals',
+      \ 'coc-sql',
+      \ 'coc-markdownlint',
+      \ ]
 
 set background=dark
 syntax enable

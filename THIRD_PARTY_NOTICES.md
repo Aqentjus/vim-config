@@ -46,6 +46,17 @@ and transitive dependencies can change independently of this repository.
 | **coc.nvim** | https://github.com/neoclide/coc.nvim | MIT |
 | **coc-clangd** | https://github.com/clangd/coc-clangd | Apache-2.0 WITH LLVM-exception |
 | **coc-pyright** | https://github.com/fannheyward/coc-pyright | MIT |
+| **coc-html** | https://github.com/neoclide/coc-html | MIT |
+| **coc-css** | https://github.com/neoclide/coc-css | MIT |
+| **coc-tsserver** | https://github.com/neoclide/coc-tsserver | MIT |
+| **coc-json** | https://github.com/neoclide/coc-json | MIT |
+| **coc-yaml** | https://github.com/neoclide/coc-yaml | MIT |
+| **coc-sh** | https://github.com/josa42/coc-sh | MIT |
+| **coc-powershell** | https://github.com/coc-extensions/coc-powershell | MIT |
+| **coc-docker** | https://github.com/josa42/coc-docker | MIT |
+| **coc-luals** | https://github.com/xiyaowong/coc-luals | MIT |
+| **coc-sql** | https://github.com/fannheyward/coc-sql | MIT |
+| **coc-markdownlint** | https://github.com/fannheyward/coc-markdownlint | MIT |
 
 - **coc.nvim** — Copyright 2018–2026 Qiming Zhao. See the
   [upstream MIT license](https://github.com/neoclide/coc.nvim/blob/master/LICENSE.md).

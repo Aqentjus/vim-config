@@ -21,6 +21,7 @@ Gruvbox · netrw explorer · coc.nvim (C/C++ and Python) · Pico build/flash too
 | Run C / C++ | `cc` / `gcc` / `clang` and `c++` / `g++` / `clang++`, respectively |
 | Run JavaScript / shell | `node` / `bash`, respectively |
 | C/C++ IntelliSense | `clangd` on `PATH`, or install it with `:CocCommand clangd.install` |
+| PowerShell IntelliSense | `pwsh` on `PATH` (or Windows PowerShell on Windows); `coc-powershell` is older and should be tested locally |
 | Pico build | Pico SDK, `cmake`, `ninja`, `arm-none-eabi-gcc` |
 | Pico flash | Pico build dependencies + `openocd` and CMSIS-DAP/OpenOCD scripts |
 | Linux system clipboard fallback | `wl-copy` + `wl-paste`, `xclip`, or `xsel` if Vim lacks native clipboard support |
@@ -48,6 +49,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 The installer copies `vimrc` to `~/.vimrc` (Windows: `~/_vimrc`) and everything else into `~/.vim-config/`. Existing changed files are backed up; your `coc-settings.json` is preserved. The checkout is no longer needed after installation.
 
 To update the configuration: `git pull --ff-only`, then rerun the installer. On first launch, use `:CocInfo` to check CoC.
+
+CoC installs missing extensions for C/C++, Python, HTML, CSS, JavaScript/TypeScript, JSON, YAML, Bash, PowerShell, Dockerfiles, Lua, SQL and Markdown. Open `:CocList extensions` to check them; no extension versions are pinned.
 
 ## Keybindings
 
