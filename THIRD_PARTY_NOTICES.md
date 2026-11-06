@@ -33,3 +33,31 @@ invented licence file as an upstream original.
 Only the colour file is included. The optional Gruvbox autoload convenience
 functions and integrations are not used. Loading the theme makes no network
 requests and requires no package manager or external language runtime.
+
+## Plugins installed separately
+
+The repository does **not** contain copies of the following plugins.
+The installer downloads coc.nvim from its upstream `release` branch, and
+coc.nvim fetches the configured extensions on first launch. Their versions
+and transitive dependencies can change independently of this repository.
+
+| Component | Upstream | License |
+| --- | --- | --- |
+| **coc.nvim** | https://github.com/neoclide/coc.nvim | MIT |
+| **coc-clangd** | https://github.com/clangd/coc-clangd | Apache-2.0 WITH LLVM-exception |
+| **coc-pyright** | https://github.com/fannheyward/coc-pyright | MIT |
+
+- **coc.nvim** — Copyright 2018–2026 Qiming Zhao. See the
+  [upstream MIT license](https://github.com/neoclide/coc.nvim/blob/master/LICENSE.md).
+- **coc-clangd** — its [package metadata](https://github.com/clangd/coc-clangd/blob/master/package.json)
+  declares `Apache-2.0 WITH LLVM-exception`. The
+  [upstream license file](https://github.com/clangd/coc-clangd/blob/master/LICENSE)
+  contains Apache License 2.0 and the LLVM exceptions.
+- **coc-pyright** — Copyright (c) 2021 Heyward Fann. See the
+  [upstream MIT license](https://github.com/fannheyward/coc-pyright/blob/master/LICENSE).
+
+These components retain their own upstream copyright notices and license
+terms; this project does not claim ownership of them. Any separately
+downloaded language servers (such as clangd), runtime packages, and other
+dependencies are subject to their respective licenses, which should be
+consulted in the installed packages or upstream repositories.
