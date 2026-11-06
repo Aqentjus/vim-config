@@ -1,62 +1,108 @@
-# Install this checkout's Vim configuration for native Windows Vim.
-# The loader is a regular file; no administrator privileges or symlinks needed.
+# Native Windows Vim installer. Nothing is linked to the Git checkout.
+# Requirements: Vim >= 9.0.0438, Node.js >= 22.15, npm and Git.
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-if (-not (Get-Command vim -ErrorAction SilentlyContinue)) {
-    throw 'Install Vim first and ensure vim.exe is on PATH.'
+foreach ($tool in @('vim', 'node', 'npm', 'git')) {
+    if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) {
+        throw "Missing $tool. Install it and put it on PATH first."
+    }
+}
+& vim -Nu NONE -n -es -c "if !has('patch-9.0.0438') | cquit 1 | endif" -c 'qa!'
+if ($LASTEXITCODE -ne 0) { throw 'coc.nvim requires Vim 9.0.0438 or newer.' }
+$nodeVersion = (& node -p 'process.versions.node').Trim()
+if ([version]$nodeVersion -lt [version]'22.15.0') {
+    throw "coc.nvim requires Node.js 22.15.0 or newer (found $nodeVersion)."
 }
 
 $repo = (Resolve-Path -LiteralPath $PSScriptRoot).Path
-$source = Join-Path $repo 'vimrc'
-$theme = Join-Path (Join-Path $repo 'colors') 'gruvbox.vim'
-if (-not (Test-Path -LiteralPath $source -PathType Leaf) -or
-    -not (Test-Path -LiteralPath $theme -PathType Leaf)) {
-    throw 'Run this installer from a complete vim-config checkout.'
-}
-
-# _vimrc has priority over .vimrc on native Windows Vim.
+$sourceRoot = Join-Path $repo 'config'
+$root = Join-Path $HOME '.vim-config'
 $target = Join-Path $HOME '_vimrc'
-$vimPath = $source.Replace('\', '/').Replace("'", "''")
-$loader = "set nocompatible`nset encoding=utf-8`nexecute 'source ' . fnameescape('$vimPath')`n"
-
-function Test-Entry([string]$path) {
-    return $null -ne (Get-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue)
-}
-
-if (Test-Entry $target) {
-    $old = [System.IO.File]::ReadAllText($target)
-    if ($old -eq $loader) {
-        Write-Host "Already installed: $target"
-        exit 0
+foreach ($source in @('vimrc', 'coc-settings.json', 'colors/gruvbox.vim')) {
+    if (-not (Test-Path -LiteralPath (Join-Path $sourceRoot $source) -PathType Leaf)) {
+        throw "Incomplete checkout: config/$source is missing."
     }
 }
-
-$backup = $null
-if (Test-Entry $target) {
-    $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-    $backup = "$target.backup.$stamp"
-    $index = 1
-    while (Test-Entry $backup) {
-        $backup = "$target.backup.$stamp.$index"
-        $index++
+New-Item -ItemType Directory -Path (Join-Path $root 'pack/coc/start') -Force | Out-Null
+$plugin = Join-Path $root 'pack/coc/start/coc.nvim'
+if (Test-Path -LiteralPath $plugin) {
+    if (-not (Test-Path -LiteralPath (Join-Path $plugin 'plugin/coc.vim') -PathType Leaf)) {
+        throw "Existing coc.nvim installation appears incomplete: $plugin"
     }
-    Move-Item -LiteralPath $target -Destination $backup
-    Write-Host "Previous configuration backed up to: $backup"
+    Write-Host "Keeping installed coc.nvim: $plugin"
+} else {
+    $temporaryPlugin = Join-Path $root ("pack/coc/start/.coc.nvim.install.$PID")
+    try {
+        & git clone --depth 1 --branch release 'https://github.com/neoclide/coc.nvim.git' $temporaryPlugin
+        if ($LASTEXITCODE -ne 0) { throw 'coc.nvim clone failed.' }
+        Move-Item -LiteralPath $temporaryPlugin -Destination $plugin
+    } catch {
+        if (Test-Path -LiteralPath $temporaryPlugin) {
+            Remove-Item -LiteralPath $temporaryPlugin -Recurse -Force
+        }
+        throw
+    }
+    Write-Host "Installed coc.nvim: $plugin"
 }
 
-try {
-    # Windows PowerShell's -Encoding UTF8 adds a BOM, so write UTF-8 without BOM.
-    $utf8 = New-Object System.Text.UTF8Encoding($false)
-    [System.IO.File]::WriteAllText($target, $loader, $utf8)
-    Write-Host "Installed: $target"
-    Write-Host "This loader reads: $source"
-    Write-Host 'Future git pull updates this Vim setup on its next launch.'
-} catch {
-    if ($null -ne $backup) {
-        if (Test-Entry $target) { Remove-Item -LiteralPath $target -Force }
-        Move-Item -LiteralPath $backup -Destination $target
-        Write-Warning 'Restored the previous configuration.'
-    }
-    throw
+$stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+$backupRoot = Join-Path $root "backups/$stamp"
+$index = 1
+while (Test-Path -LiteralPath $backupRoot) {
+    $backupRoot = Join-Path $root "backups/$stamp.$index"
+    $index++
 }
+
+function Copy-ManagedFile([string]$source, [string]$destination, [string]$backupName) {
+    $existing = Get-Item -LiteralPath $destination -Force -ErrorAction SilentlyContinue
+    if ($null -ne $existing -and $existing.PSIsContainer) {
+        throw "Refusing to replace a directory: $destination"
+    }
+    if ($null -ne $existing -and
+        -not ($existing.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -and
+        (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash -eq
+        (Get-FileHash -LiteralPath $destination -Algorithm SHA256).Hash) {
+        return
+    }
+    New-Item -ItemType Directory -Path (Split-Path -Path $destination -Parent) -Force | Out-Null
+    $temporaryFile = "$destination.install.$PID"
+    Copy-Item -LiteralPath $source -Destination $temporaryFile -Force
+    $backup = Join-Path $backupRoot $backupName
+    $movedOld = $false
+    try {
+        if ($null -ne $existing) {
+            New-Item -ItemType Directory -Path (Split-Path -Path $backup -Parent) -Force | Out-Null
+            Move-Item -LiteralPath $destination -Destination $backup
+            $movedOld = $true
+        }
+        Move-Item -LiteralPath $temporaryFile -Destination $destination
+    } catch {
+        if (Test-Path -LiteralPath $temporaryFile) { Remove-Item -LiteralPath $temporaryFile -Force }
+        if ($movedOld -and -not (Test-Path -LiteralPath $destination)) {
+            Move-Item -LiteralPath $backup -Destination $destination
+        }
+        throw
+    }
+    if ($movedOld) { Write-Host "Backed up previous file: $backup" }
+    Write-Host "Installed: $destination"
+}
+
+Copy-ManagedFile (Join-Path $sourceRoot 'vimrc') $target '_vimrc'
+foreach ($folder in @('colors', 'extensions')) {
+    Get-ChildItem -LiteralPath (Join-Path $sourceRoot $folder) -File -Recurse | ForEach-Object {
+        $relative = $_.FullName.Substring($sourceRoot.Length + 1)
+        Copy-ManagedFile $_.FullName (Join-Path $root $relative) $relative
+    }
+}
+$cocSettings = Join-Path $root 'coc-settings.json'
+if (-not (Test-Path -LiteralPath $cocSettings)) {
+    Copy-ManagedFile (Join-Path $sourceRoot 'coc-settings.json') $cocSettings 'coc-settings.json'
+} else {
+    Write-Host 'Keeping existing coc-settings.json; custom settings are preserved.'
+}
+
+Write-Host ''
+Write-Host 'Installed. You can now move or delete the Git checkout.'
+Write-Host 'On first Vim start, CoC installs coc-clangd and coc-pyright (internet required).'
+Write-Host 'In Vim run :CocInfo to check completion and language servers.'
