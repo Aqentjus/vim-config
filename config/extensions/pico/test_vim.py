@@ -37,7 +37,7 @@ class VimTests(unittest.TestCase):
         self.file.write_text('original\n')
         self.errors = self.base / 'errors.txt'
         self.env = os.environ.copy()
-        self.env.update({'HOME':str(self.base), 'PICO_TEST_LOG':str(self.log)})
+        self.env.update({'HOME':str(self.base), 'VIM_CONFIG_HOME':str(self.repo), 'PICO_TEST_LOG':str(self.log)})
         for key in ['VIMINIT', 'EXINIT', 'GVIMINIT']:
             self.env.pop(key, None)
 

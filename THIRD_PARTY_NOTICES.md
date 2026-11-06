@@ -2,7 +2,7 @@
 
 ## Gruvbox
 
-`colors/gruvbox.vim` is an unmodified copy of the original Gruvbox colour scheme.
+`config/colors/gruvbox.vim` is an unmodified copy of the original Gruvbox colour scheme.
 
 - Author: Pavel Pertsev (morhetz), <morhetz@gmail.com>.
 - Upstream: https://github.com/morhetz/gruvbox

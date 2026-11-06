@@ -1,7 +1,8 @@
 # Pico build/flash extension
 
-The Vim commands and Python helper now live together in `extensions/pico/`.
-The core vimrc loads `init.vim` automatically and quietly. Projects no longer
+The Vim commands and Python helper ship in `config/extensions/pico/` and
+are installed into `~/.vim-config/extensions/pico/`.
+The installed vimrc loads `init.vim` automatically and quietly. Projects no longer
 need `tools/pico.py`, `tools/pico.vim`, or an explicit `:source` command.
 The normal Space+r single-file runner is unchanged.
 
@@ -51,28 +52,26 @@ includes from an unmodified VS Code project.
 
 ## Migration
 
-In the installed vim-config checkout, update the `staging` branch and restart Vim.
-Run `:PicoCheck` from your Pico project, then test `:build_pico`. No manual source
-step is required. After that succeeds, the **two old helper copies**
-`tools/pico.py` and `tools/pico.vim` in the project can be removed; do not delete
-unrelated files from `tools/`. The old `optional/` directory in this repository
-has been replaced by `extensions/`. The installers need no changes because they
-already load the checkout's vimrc in place.
+Pull the new staging branch, rerun install.sh or install.ps1, then restart Vim.
+The Pico helper is now copied into ~/.vim-config/extensions/pico/ and no
+longer depends on the checkout remaining on disk. Test :PicoCheck followed by
+:build_pico in a Pico project. Once confirmed, you may remove obsolete
+project-local tools/pico.py and tools/pico.vim copies.
 
 ## Without Vim
 
 From the project directory (substitute the actual vim-config checkout path):
 
 ```sh
-python3 /path/to/vim-config/extensions/pico/pico.py check
-python3 /path/to/vim-config/extensions/pico/pico.py build
+python3 ~/.vim-config/extensions/pico/pico.py check
+python3 ~/.vim-config/extensions/pico/pico.py build
 ```
 
 Or supply the project explicitly from anywhere:
 
 ```sh
-python3 /path/to/vim-config/extensions/pico/pico.py check --project /path/to/project
-python3 /path/to/vim-config/extensions/pico/pico.py flash --project /path/to/project --dry-run
+python3 ~/.vim-config/extensions/pico/pico.py check --project /path/to/project
+python3 ~/.vim-config/extensions/pico/pico.py flash --project /path/to/project --dry-run
 ```
 
 On native Windows, use `py -3` instead of `python3` as appropriate. Python 3.8+

@@ -14,10 +14,18 @@ set number
 set autoindent expandtab
 set tabstop=2 shiftwidth=2 softtabstop=2
 
-" Requires a full Vim build with syntax support and the bundled netrw explorer.
-" Resolve this file's location so `vim -u /path/to/vimrc` finds our colour file.
-let s:config_dir = fnamemodify(resolve(expand('<sfile>:p')), ':h')
+" Installed Vim has a standalone ~/.vimrc and a private ~/.vim-config folder.
+" VIM_CONFIG_HOME allows testing a checkout without installing it.
+let s:config_dir = empty($VIM_CONFIG_HOME) ? expand('~/.vim-config') : $VIM_CONFIG_HOME
+let s:config_dir = substitute(fnamemodify(s:config_dir, ':p'), '\\', '/', 'g')
+let s:config_dir = substitute(s:config_dir, '/$', '', '')
 let &runtimepath = escape(s:config_dir, ',') . ',' . &runtimepath
+let &packpath = escape(s:config_dir, ',') . ',' . &packpath
+
+" Keep coc.nvim's settings, downloaded extensions and data together.
+let g:coc_config_home = s:config_dir
+let g:coc_data_home = s:config_dir . '/coc-data'
+let g:coc_global_extensions = ['coc-clangd', 'coc-pyright']
 
 set background=dark
 syntax enable
@@ -257,52 +265,31 @@ function! s:SearchProject() abort
 endfunction
 nnoremap <silent> <leader>s :<C-U>call <SID>SearchProject()<CR>
 
-" Completion: no language server, no plugin. Tab offers words from buffers.
-" Python gets a compact curated list of common built-in calls (including print()).
-let s:python_calls = [
-      \ 'print()', 'input()', 'range()', 'len()', 'enumerate()',
-      \ 'int()', 'float()', 'str()', 'list()', 'dict()', 'set()',
-      \ 'tuple()', 'type()', 'isinstance()', 'open()', 'sum()',
-      \ 'min()', 'max()', 'sorted()', 'zip()', 'map()', 'filter()',
-      \ 'abs()', 'all()', 'any()', 'bool()', 'dir()', 'help()',
-      \ 'super()', 'repr()', 'round()', 'next()', 'iter()'
-      \ ]
+" coc.nvim provides automatic completion with a native Vim package (no plugin manager).
+" If coc.nvim is absent (e.g. during a repository preview), keep native keys.
+if isdirectory(s:config_dir . '/pack/coc/start/coc.nvim')
+  set updatetime=300
+  set signcolumn=yes
 
-function! s:PythonComplete(findstart, base) abort
-  if a:findstart
-    let l:start = col('.') - 1
-    let l:line = getline('.')
-    while l:start > 0 && l:line[l:start - 1] =~# '\k'
-      let l:start -= 1
-    endwhile
-    return l:start
-  endif
-  return filter(copy(s:python_calls), 'stridx(v:val, a:base) == 0')
-endfunction
+  function! s:CompletionBackspace() abort
+    let l:col = col('.') - 1
+    return !l:col || getline('.')[l:col - 1] =~# '\s'
+  endfunction
 
-augroup VimConfigCompletion
-  autocmd!
-  autocmd FileType python let &l:completefunc = expand('<SID>') . 'PythonComplete'
-augroup END
+  inoremap <silent><expr> <Tab> coc#pum#visible()
+        \ ? coc#pum#next(1)
+        \ : <SID>CompletionBackspace() ? "\<Tab>" : coc#refresh()
+  inoremap <silent><expr> <S-Tab> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
+  inoremap <silent><expr> <CR> coc#pum#visible()
+        \ ? coc#pum#confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 
-set completeopt=menuone,noinsert
-function! s:SmartTab() abort
-  if pumvisible()
-    return "\<C-n>"
-  endif
-  let l:before = strpart(getline('.'), 0, col('.') - 1)
-  let l:prefix = matchstr(l:before, '\k\+$')
-  if empty(l:prefix)
-    return "\<Tab>"
-  endif
-  if &filetype ==# 'python' && !empty(filter(copy(s:python_calls), 'stridx(v:val, l:prefix) == 0'))
-    return "\<C-x>\<C-u>"
-  endif
-  return "\<C-n>"
-endfunction
-inoremap <expr> <Tab> <SID>SmartTab()
-inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
+  nmap <silent> gd <Plug>(coc-definition)
+  nmap <silent> gr <Plug>(coc-references)
+  nmap <silent> [d <Plug>(coc-diagnostic-prev)
+  nmap <silent> ]d <Plug>(coc-diagnostic-next)
+  nmap <silent> <leader>rn <Plug>(coc-rename)
+  nnoremap <silent> K :call CocActionAsync('doHover')<CR>
+endif
 
 " Self-contained cheat sheet. Native :help is untouched.
 function! s:ShowQuickHelp() abort
@@ -335,10 +322,15 @@ function! s:ShowQuickHelp() abort
         \ 'Space y                Normal        Copy whole line to system',
         \ 'Space p                Normal        Paste from system clipboard',
         \ ':ClipboardHealth       Command       Show clipboard backend and mouse',
-        \ 'Tab                    Insert        Suggest word or indent',
+        \ 'Typing                 Insert        CoC suggests completions automatically'
         \ 'Tab / Shift+Tab        Completion    Next/previous suggestion',
         \ 'Enter                  Completion    Accept suggestion',
-        \ 'Ctrl+E                 Completion    Cancel suggestions',
+        \ 'Ctrl+E                 Completion    Dismiss suggestions',
+        \ 'gd / gr                Normal        Definition / references (CoC)',
+        \ 'K                      Normal        Hover documentation (CoC)',
+        \ '[d / ]d                Normal        Previous / next diagnostic (CoC)',
+        \ 'Space r n              Normal        Rename symbol (CoC)',
+        \ ':CocInfo               Command       Check coc.nvim and language servers'
         \ '/text / ?text          Normal        Search forward / backward',
         \ 'n / N                  Normal        Next / previous match',
         \ ':cnext / :cprev        Command       Next / previous search result',
@@ -352,7 +344,7 @@ function! s:ShowQuickHelp() abort
         \ ':terminal               Command       Start built-in terminal',
         \ ':help {topic}          Command       Vim built-in documentation',
         \ '',
-        \ 'C / C++: single file only. Python: selected common built-ins + buffer words.',
+        \ 'CoC adds C/C++ (clangd) and Python (Pyright) on its first start.'
         \ 'Search from :pwd; :cd {directory} changes the search root.',
         \ 'Press q to close this help tab.'
         \ ]
@@ -385,7 +377,7 @@ if has('clipboard') && (has('win32') || has('win64') || has('macunix') || !empty
 endif
 
 " Use OS tools only when this Vim has no native desktop clipboard.
-" No package manager, plugins, or downloaded code are involved.
+" Clipboard fallback uses the operating system, without a clipboard plugin.
 function! s:ClipboardBackend() abort
   if has('clipboard') && (has('win32') || has('win64') || has('macunix') || !empty($DISPLAY) || !empty($WAYLAND_DISPLAY))
     return (has('win32') || has('win64') || has('macunix') || !has('unnamedplus')) ? 'vim*' : 'vim+'
