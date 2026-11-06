@@ -322,7 +322,7 @@ function! s:ShowQuickHelp() abort
         \ 'Space y                Normal        Copy whole line to system',
         \ 'Space p                Normal        Paste from system clipboard',
         \ ':ClipboardHealth       Command       Show clipboard backend and mouse',
-        \ 'Typing                 Insert        CoC suggests completions automatically'
+        \ 'Typing                 Insert        CoC suggests completions automatically',
         \ 'Tab / Shift+Tab        Completion    Next/previous suggestion',
         \ 'Enter                  Completion    Accept suggestion',
         \ 'Ctrl+E                 Completion    Dismiss suggestions',
@@ -330,7 +330,7 @@ function! s:ShowQuickHelp() abort
         \ 'K                      Normal        Hover documentation (CoC)',
         \ '[d / ]d                Normal        Previous / next diagnostic (CoC)',
         \ 'Space r n              Normal        Rename symbol (CoC)',
-        \ ':CocInfo               Command       Check coc.nvim and language servers'
+        \ ':CocInfo               Command       Check coc.nvim and language servers',
         \ '/text / ?text          Normal        Search forward / backward',
         \ 'n / N                  Normal        Next / previous match',
         \ ':cnext / :cprev        Command       Next / previous search result',
@@ -344,7 +344,7 @@ function! s:ShowQuickHelp() abort
         \ ':terminal               Command       Start built-in terminal',
         \ ':help {topic}          Command       Vim built-in documentation',
         \ '',
-        \ 'CoC adds C/C++ (clangd) and Python (Pyright) on its first start.'
+        \ 'CoC adds C/C++ (clangd) and Python (Pyright) on its first start.',
         \ 'Search from :pwd; :cd {directory} changes the search root.',
         \ 'Press q to close this help tab.'
         \ ]
