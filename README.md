@@ -1,17 +1,35 @@
 # Vim configuration
 
-Vim with **Gruvbox**, a persistent netrw explorer, clipboard shortcuts,
-single-file code execution, Raspberry Pi Pico build/flash commands, and
-**coc.nvim** for IntelliSense and automatic suggestions.
+Gruvbox · netrw explorer · coc.nvim (C/C++ and Python) · Pico build/flash tools.
 
-The `staging` branch is for changes and testing. `production` is stable.
+## Prerequisites
 
-## Installation
+**Required on `PATH` for installation:**
 
-Requires **Vim 9.0.0438+**, **Node.js 22.15+**, npm and Git. The installers
-check these dependencies rather than installing system software.
+| Command | Requirement |
+| --- | --- |
+| `vim` | Vim **9.0.0438+** (full build with `+terminal` for running code/Pico) |
+| `git` | Clone this repository and install coc.nvim |
+| `node` | Node.js **22.15.0+** for coc.nvim |
+| `npm` | CoC language extensions |
 
-macOS / Linux:
+**Only needed for the features you use:**
+
+| Feature | Commands / dependencies |
+| --- | --- |
+| Run Python or use Pico commands | Python **3.8+**: `python3` or `python` on `PATH` (Windows also supports `py -3`) |
+| Run C / C++ | `cc` / `gcc` / `clang` and `c++` / `g++` / `clang++`, respectively |
+| Run JavaScript / shell | `node` / `bash`, respectively |
+| C/C++ IntelliSense | `clangd` on `PATH`, or install it with `:CocCommand clangd.install` |
+| Pico build | Pico SDK, `cmake`, `ninja`, `arm-none-eabi-gcc` |
+| Pico flash | Pico build dependencies + `openocd` and CMSIS-DAP/OpenOCD scripts |
+| Linux system clipboard fallback | `wl-copy` + `wl-paste`, `xclip`, or `xsel` if Vim lacks native clipboard support |
+
+Pico tools can instead live in the expected `~/.pico-sdk/` directories or be configured with `PICO_*` environment variables; they do **not** all need to be on `PATH`. See [Pico details](config/extensions/pico/README.md). Internet access is needed to download coc.nvim and CoC extensions.
+
+## Install
+
+**macOS / Linux**
 
 ```sh
 git clone --branch staging https://github.com/Aqentjus/vim-config.git
@@ -19,7 +37,7 @@ cd vim-config
 sh ./install.sh
 ```
 
-Windows (PowerShell):
+**Windows (PowerShell)**
 
 ```powershell
 git clone --branch staging https://github.com/Aqentjus/vim-config.git
@@ -27,111 +45,30 @@ cd vim-config
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-The installer **copies** the configuration from the checkout (no symlinks and
-no dependency on that checkout afterward). macOS and Linux use `~/.vimrc`;
-native Windows Vim uses `~/_vimrc`.
+The installer copies `vimrc` to `~/.vimrc` (Windows: `~/_vimrc`) and everything else into `~/.vim-config/`. Existing changed files are backed up; your `coc-settings.json` is preserved. The checkout is no longer needed after installation.
 
-```text
-~/
-├── .vimrc                           macOS/Linux; _vimrc on Windows
-└── .vim-config/
-    ├── colors/gruvbox.vim
-    ├── extensions/pico/             custom extension and Python helper
-    ├── coc-settings.json            your settings; never overwritten
-    ├── pack/coc/start/coc.nvim/     release branch, installed via Git
-    ├── coc-data/                   CoC extensions and state
-    └── backups/                    replaced files, when necessary
-```
+To update the configuration: `git pull --ff-only`, then rerun the installer. On first launch, use `:CocInfo` to check CoC.
 
-Rerun the installer after any repository update. It copies changed managed
-files, backs up prior versions under `~/.vim-config/backups/`, skips unchanged
-files and preserves extra files you added. Existing `coc-settings.json` is
-never overwritten. The repo can be moved or removed after installation.
+## Keybindings
 
-## First launch and CoC
+`Space` is the leader key.
 
-Start Vim from the source project's directory. CoC automatically installs
-`coc-clangd` (C/C++) and `coc-pyright` (Python) the first time it starts.
-These extension downloads require internet connectivity. Check status with
-`:CocInfo` or `:CocList extensions`.
-
-For C/C++, clangd must be on PATH or downloaded via
-`:CocCommand clangd.install`. For Raspberry Pi Pico builds, make
-`build-pico/compile_commands.json` discoverable to clangd (for example, by a
-symlink from the project root). The compilation database is needed for SDK
-headers and correct include paths.
-
-Use `:CocConfig` to edit the JSON file within your private Vim folder.
-
-## Key bindings
-
-| Keys / command | Behavior |
+| Keys / command | Action |
 | --- | --- |
-| Space e | Focus explorer (netrw) |
-| Enter (explorer) | Open file / expand directory |
-| Space n (explorer) | Create a file / folder |
-| Space r | Save and run Python, C/C++, JS, or shell source |
-| Space f / Space s | Find file / search project text |
-| Space c | Clear search highlight |
-| Space h / :Keys | Show built-in help |
-| Typing | Auto-suggest using CoC |
-| Tab / Shift+Tab | Next / previous completion, or indent |
-| Enter | Confirm completion |
-| gd / gr | Definition / references |
-| K | Hover information |
-| [d / ]d | Previous / next diagnostic |
-| Space R | Rename symbol |
-| :CocInfo / :CocConfig | CoC health / config |
-| :BuildPico / :build_pico | Configure and build Pico project |
-| :FlashPico / :flash_pico | Build, SWD flash and verify |
-| :PicoCheck | Inspect Pico tool paths without flashing |
+| `Space e` | Focus the persistent file explorer |
+| `Enter` / `Space n` (explorer) | Open a file or directory / create a file or directory |
+| `Space r` | Save and run the current source file |
+| `Space f` / `Space s` | Find a file / search project text |
+| `Space c` / `Space h` | Clear search highlights / open help |
+| `Space y` / `Space p` | Copy selection or line / paste from system clipboard |
+| `Tab` / `Shift+Tab` | Navigate CoC suggestions (Tab indents when appropriate) |
+| `Enter` (completion) | Accept suggestion |
+| `gd` / `gr` | Go to definition / find references |
+| `K` | Show symbol documentation |
+| `[d` / `]d` | Previous / next diagnostic |
+| `Space R` | Rename symbol |
+| `:BuildPico` / `:FlashPico` | Build / build and flash Pico |
+| `:PicoCheck` | Check Pico tool configuration |
+| `:CocInfo` / `:CocConfig` | CoC status / settings |
 
-The editor's existing clipboard, mouse selection, indentation and terminal
-key bindings are preserved. Use `:Keys` for the full built-in cheatsheet.
-See [the Pico extension](config/extensions/pico/README.md) for build details.
-
-## Source repository
-
-```text
-vim-config/
-├── config/
-│   ├── vimrc
-│   ├── coc-settings.json
-│   ├── colors/gruvbox.vim
-│   └── extensions/
-│       ├── README.md
-│       └── pico/                  init.vim, pico.py, tests and docs
-├── install.sh                     macOS / Linux
-├── install.ps1                    Windows
-├── THIRD_PARTY_NOTICES.md         theme attribution and licensing
-└── README.md
-```
-
-`config/` contains everything copied into the standalone installation.
-coc.nvim itself is fetched from its official release branch, rather than
-being vendored in this repository.
-
-## Updating, testing and recovery
-
-To update the source configuration, run `git pull --ff-only` inside the
-checkout and rerun the installer. Your previous files are backed up.
-
-To update coc.nvim itself:
-
-```sh
-git -C "$HOME/.vim-config/pack/coc/start/coc.nvim" pull --ff-only origin release
-```
-
-To update CoC's language extensions, run `:CocUpdate` within Vim.
-To preview source code without installing:
-
-```sh
-VIM_CONFIG_HOME="$(pwd)/config" vim -Nu ./config/vimrc
-```
-
-This preview won't install coc.nvim; CoC's keys activate after actual install.
-The Pico tests simulate tools without touching real hardware:
-
-```sh
-python3 -m unittest discover -s config/extensions/pico -p 'test_*.py' -v
-```
+Full shortcuts: `Space h` or `:Keys` inside Vim.
