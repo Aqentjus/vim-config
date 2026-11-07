@@ -19,7 +19,7 @@ $repo = (Resolve-Path -LiteralPath $PSScriptRoot).Path
 $sourceRoot = Join-Path $repo 'config'
 $root = Join-Path $HOME '.vim-config'
 $target = Join-Path $HOME '_vimrc'
-foreach ($source in @('vimrc', 'coc-settings.json', 'colors/gruvbox.vim')) {
+foreach ($source in @('vimrc', 'coc-settings.json', 'colors/molokai.vim')) {
     if (-not (Test-Path -LiteralPath (Join-Path $sourceRoot $source) -PathType Leaf)) {
         throw "Incomplete checkout: config/$source is missing."
     }
@@ -95,6 +95,17 @@ foreach ($folder in @('colors', 'extensions')) {
         Copy-ManagedFile $_.FullName (Join-Path $root $relative) $relative
     }
 }
+# Retire the former bundled theme; preserve any modified copy in backups.
+$legacyTheme = Join-Path $root 'colors/gruvbox.vim'
+$legacyItem = Get-Item -LiteralPath $legacyTheme -Force -ErrorAction SilentlyContinue
+if ($null -ne $legacyItem) {
+    if ($legacyItem.PSIsContainer) { throw "Cannot retire a directory at $legacyTheme" }
+    $legacyBackup = Join-Path $backupRoot 'colors/gruvbox.vim'
+    New-Item -ItemType Directory -Path (Split-Path -Path $legacyBackup -Parent) -Force | Out-Null
+    Move-Item -LiteralPath $legacyTheme -Destination $legacyBackup
+    Write-Host "Old theme retired from active colors (backup: $legacyBackup)"
+}
+
 $cocSettings = Join-Path $root 'coc-settings.json'
 if (-not (Test-Path -LiteralPath $cocSettings)) {
     Copy-ManagedFile (Join-Path $sourceRoot 'coc-settings.json') $cocSettings 'coc-settings.json'
@@ -104,5 +115,5 @@ if (-not (Test-Path -LiteralPath $cocSettings)) {
 
 Write-Host ''
 Write-Host 'Installed. You can now move or delete the Git checkout.'
-Write-Host 'On first Vim start, CoC installs coc-clangd and coc-pyright (internet required).'
+Write-Host 'On first Vim start, CoC installs missing language extensions (internet required).'
 Write-Host 'In Vim run :CocInfo to check completion and language servers.'

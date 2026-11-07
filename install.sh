@@ -25,8 +25,8 @@ fi
 repo=$(CDPATH= cd "$(dirname "$0")" && pwd -P)
 source_root="$repo/config"
 root="$HOME/.vim-config"
-if [ ! -f "$source_root/vimrc" ] || [ ! -f "$source_root/coc-settings.json" ] || [ ! -f "$source_root/colors/gruvbox.vim" ]; then
-  echo 'Incomplete checkout: config/vimrc, coc-settings.json or colors/gruvbox.vim is missing.' >&2
+if [ ! -f "$source_root/vimrc" ] || [ ! -f "$source_root/coc-settings.json" ] || [ ! -f "$source_root/colors/molokai.vim" ]; then
+  echo 'Incomplete checkout: config/vimrc, coc-settings.json or colors/molokai.vim is missing.' >&2
   exit 1
 fi
 
@@ -93,6 +93,19 @@ for folder in colors extensions; do
   done
 done
 
+# Retire the former bundled theme from active colors without losing user edits.
+legacy_theme="$root/colors/gruvbox.vim"
+if [ -e "$legacy_theme" ] || [ -L "$legacy_theme" ]; then
+  if [ -d "$legacy_theme" ] && [ ! -L "$legacy_theme" ]; then
+    echo "Cannot retire a directory at $legacy_theme" >&2
+    exit 1
+  fi
+  legacy_backup="$backup_root/colors/gruvbox.vim"
+  mkdir -p "$(dirname "$legacy_backup")"
+  mv "$legacy_theme" "$legacy_backup"
+  echo "Old theme retired from active colors (backup: $legacy_backup)"
+fi
+
 # User-edited CoC settings survive future installs.
 if [ ! -e "$root/coc-settings.json" ] && [ ! -L "$root/coc-settings.json" ]; then
   copy_managed "$source_root/coc-settings.json" "$root/coc-settings.json" "coc-settings.json"
@@ -102,5 +115,5 @@ fi
 
 echo ''
 echo 'Installed. You can now move or delete the Git checkout.'
-echo 'On first Vim start, CoC installs coc-clangd and coc-pyright (internet required).'
+echo 'On first Vim start, CoC installs missing language extensions (internet required).'
 echo 'In Vim run :CocInfo to check completion and language servers.'

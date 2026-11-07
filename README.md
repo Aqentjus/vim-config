@@ -1,6 +1,6 @@
 # Vim configuration
 
-Gruvbox · netrw explorer · coc.nvim (C/C++ and Python) · Pico build/flash tools.
+Molokai · netrw explorer · coc.nvim (C/C++ and Python) · Pico build/flash tools.
 
 ## Prerequisites
 

@@ -1,38 +1,40 @@
 # Third-party notices
 
-## Gruvbox
+## Molokai
 
-`config/colors/gruvbox.vim` is an unmodified copy of the original Gruvbox colour scheme.
+`config/colors/molokai.vim` is a copy of Tomas Restrepo's
+[Molokai Vim colorscheme](https://github.com/tomasr/molokai).
+Based on the Monokai theme by Wimer Hazenberg and its darker variant
+by Hamish Stuart Macpherson.
 
-- Author: Pavel Pertsev (morhetz), <morhetz@gmail.com>.
-- Upstream: https://github.com/morhetz/gruvbox
-- Revision: `ef8864bb42bf244f0295d1c5a403b27e3d139695`.
-- Source: https://github.com/morhetz/gruvbox/blob/ef8864bb42bf244f0295d1c5a403b27e3d139695/colors/gruvbox.vim
-- Git blob: `66246fba24fd49eeb50dd833094d272f0bbab640`.
-- SHA-256: `55116926ba2b625837d9ae89349a5688d60d0b32acdbd8887e1c0d225f079c3d`.
+The source file is redistributed under the **MIT License**.
+The upstream copyright and license notice follows:
 
-The upstream source header, including its author and source attribution, is
-preserved verbatim.
+monokai theme copyright Wimer Hazenberg.
 
-### Upstream licence declarations
+molokai.vim source code is licensed as follows:
 
-The [upstream README at this revision](https://github.com/morhetz/gruvbox/blob/ef8864bb42bf244f0295d1c5a403b27e3d139695/README.md)
-declares its licence as **MIT/X11**, linking to
-<https://en.wikipedia.org/wiki/MIT_License>.
+The MIT License (MIT)
 
-The [upstream package metadata at this revision](https://github.com/morhetz/gruvbox/blob/ef8864bb42bf244f0295d1c5a403b27e3d139695/package.json)
-identifies the author as `Pavel Pertsev <morhetz@gmail.com>` and declares
-`"license": "MIT"`.
+Copyright (c) 2011 Tomas Restrepo
 
-Upstream does not include a standalone `LICENSE` file at this revision. This
-notice preserves its published licence declarations without representing an
-invented licence file as an upstream original.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-### Included scope
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
-Only the colour file is included. The optional Gruvbox autoload convenience
-functions and integrations are not used. Loading the theme makes no network
-requests and requires no package manager or external language runtime.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 
 ## Plugins installed separately
 
