@@ -510,6 +510,21 @@ function! s:ClipboardHealth() abort
 endfunction
 command! ClipboardHealth call <SID>ClipboardHealth()
 
+
+function! ToggleTerminal() abort
+    if exists('g:terminal_buf') && bufexists(g:terminal_buf)
+        execute 'bwipeout! ' . g:terminal_buf
+        unlet g:terminal_buf
+        return
+    endif
+
+    botright terminal ++rows=12
+    let g:terminal_buf = bufnr('%')
+endfunction
+
+nnoremap <silent> <leader>t :call ToggleTerminal()<CR>
+tnoremap <silent> <leader>t <C-\><C-N>:call ToggleTerminal()<CR>
+
 " Consistent keyboard actions regardless of the host terminal's Ctrl/Cmd bindings.
 " Visual selection: Space+y copies to OS; Normal: Space+y copies current line.
 " Space+p pastes OS clipboard in Normal mode. Plain y/p continue to work in Vim.
