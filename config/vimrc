@@ -45,8 +45,9 @@ let g:coc_global_extensions = [
 set background=dark
 syntax enable
 
-" Enable true-colour rendering where the terminal advertises support.
-if has('termguicolors') && (has('vcon') || $COLORTERM ==# 'truecolor' || $COLORTERM ==# '24bit')
+" Match the tested Mac Terminal colours even when COLORTERM is unset.
+" Other platforms use their advertised true-colour capabilities.
+if has('termguicolors') && (has('macunix') || has('vcon') || $COLORTERM ==# 'truecolor' || $COLORTERM ==# '24bit')
   set termguicolors
 endif
 
