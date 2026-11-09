@@ -40,14 +40,41 @@ function! s:FocusExplorer() abort
   echo 'Explorer is not open. Use :Lexplore to open it.'
 endfunction
 
+" Use netrw's mapping API so expanded ancestors and names with spaces resolve
+" exactly as they do for Enter. Preserve the user's view and search pattern.
+function! s:CreationDirectory() abort
+  let l:directory = get(b:, 'netrw_curdir', '')
+  if !isdirectory(l:directory)
+    return ''
+  endif
+  let l:view = winsaveview()
+  let l:search = @/
+  try
+    let l:name = netrw#Call('NetrwGetWord')
+    if l:name ==# '../'
+      return fnamemodify(l:directory, ':h')
+    endif
+    if get(w:, 'netrw_liststyle', g:netrw_liststyle) == 3 && exists('w:netrw_treetop')
+      " TreePath returns a directory for ordinary files and a path for links.
+      let l:path = netrw#Call('NetrwTreePath', w:netrw_treetop)
+    else
+      let l:path = l:directory . '/' . substitute(l:name, '[/@*=|]$', '', '')
+    endif
+    return isdirectory(l:path) ? l:path : fnamemodify(l:path, ':h')
+  finally
+    call winrestview(l:view)
+    let @/ = l:search
+  endtry
+endfunction
+
 function! s:CreateEntry() abort
-  let directory = get(b:, 'netrw_curdir', '')
+  let directory = s:CreationDirectory()
   if !isdirectory(directory)
     echo 'Browse a local directory before creating an entry.'
     return
   endif
 
-  let entry = input('New file or /folder: ')
+  let entry = input('New file or /folder in ' . directory . ': ')
   redraw
   if empty(entry)
     return

@@ -160,11 +160,17 @@ If an enabled CoC setup lacks its runtime requirements, editing still opens quie
 ## Keys and commands
 
 Space is the leader. Help opens explicitly with `Space h`, `Space ?` or `:Keys`.
+It lists current leader mappings, including personal and buffer-local overrides,
+and reports optional feature status. Open it from the explorer to see tree shortcuts.
+Plain Space never opens a popup.
+
+Only the active editing pane highlights its current line. Its current line number
+is orange; other line numbers use a readable gray.
 
 | Keys / command | Action |
 | --- | --- |
 | `Space e` | Focus persistent file explorer |
-| `Enter` / `Space n` in explorer | Open/expand entry / create file or `/folder` |
+| `Enter` / `Space n` in explorer | Open/expand entry / create file or `/folder` inside selected folder or beside selected file |
 | `Space f` / `Space s` | Find file / search project text from current directory |
 | `Space c` | Clear search highlighting |
 | `Space t` | Open shell / stop and close this tab's managed shell or task |
@@ -176,6 +182,9 @@ Space is the leader. Help opens explicitly with `Space h`, `Space ?` or `:Keys`.
 | `:ClipboardHealth` | Show clipboard backend |
 | `:ConfigDoctor` | Read-only optional feature/tool report |
 | `:BuildPico` / `:FlashPico` / `:PicoCheck` | Build / build and flash / inspect Pico setup |
+
+The creation prompt shows its destination, including expanded nested folders.
+Existing files are never overwritten.
 
 With CoC enabled: Tab/Shift-Tab select suggestions, Enter accepts, `gd`/`gr` jump to
 definitions/references, `K` opens hover, `[d`/`]d` move between diagnostics, and

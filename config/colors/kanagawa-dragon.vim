@@ -21,7 +21,7 @@ highlight EndOfBuffer guifg=#181616 guibg=NONE gui=NONE ctermfg=233 ctermbg=NONE
 highlight NonText guifg=#625e5a guibg=NONE gui=NONE ctermfg=59 ctermbg=NONE cterm=NONE
 highlight SpecialKey guifg=#7a8382 guibg=NONE gui=NONE ctermfg=244 ctermbg=NONE cterm=NONE
 highlight Whitespace guifg=#625e5a guibg=NONE gui=NONE ctermfg=59 ctermbg=NONE cterm=NONE
-highlight LineNr guifg=#F0A45D guibg=#282727 gui=NONE ctermfg=215 ctermbg=235 cterm=NONE
+highlight LineNr guifg=#A0A5A3 guibg=#282727 gui=NONE ctermfg=247 ctermbg=235 cterm=NONE
 highlight CursorLineNr guifg=#F0A45D guibg=#282727 gui=bold ctermfg=215 ctermbg=235 cterm=bold
 highlight SignColumn guifg=#7a8382 guibg=#282727 gui=NONE ctermfg=244 ctermbg=235 cterm=NONE
 highlight FoldColumn guifg=#625e5a guibg=#282727 gui=NONE ctermfg=59 ctermbg=235 cterm=NONE

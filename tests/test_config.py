@@ -74,6 +74,75 @@ ConfigDoctor
 call assert_match('not on PATH', join(getline(1, '$'), '\n'))
 tabclose''')
 
+    def test_active_editor_highlight_and_gray_numbers(self):
+        self.install()
+        self.vim(r'''doautocmd VimEnter
+wincmd l
+call assert_equal(1, &cursorline)
+let first = win_getid()
+split
+let second = win_getid()
+call assert_equal(1, &cursorline)
+call assert_equal(0, getwinvar(first, '&cursorline'))
+call win_gotoid(first)
+call assert_equal(1, &cursorline)
+call assert_equal(0, getwinvar(second, '&cursorline'))
+Keys
+call assert_equal(0, &cursorline)
+tabclose
+call assert_equal(1, &cursorline)
+call assert_equal('#A0A5A3', synIDattr(hlID('LineNr'), 'fg', 'gui'))
+call assert_equal('#F0A45D', synIDattr(hlID('CursorLineNr'), 'fg', 'gui'))
+call feedkeys(' e', 'xt')
+call assert_equal('netrw', &filetype)
+call assert_equal(0, &cursorline)
+let v:errmsg = ""''')
+
+    def test_help_tracks_personal_and_buffer_mappings(self):
+        self.install()
+        (self.config / 'local.vim').write_text('nnoremap <leader>z :echo "personal"<CR>\nnnoremap <leader>f :echo "override"<CR>\nnunmap <leader>r\n')
+        commands = r'''nnoremap <buffer> <leader>z :echo "buffer wins"<CR>
+Keys
+let text = join(getline(1, '$'), "\n")
+call assert_match('Space z.*buffer wins.*\[buffer\]', text)
+call assert_match('Space f.*override', text)
+call assert_notmatch('Save and run current file', text)
+call assert_notmatch('Find file from current directory', text)
+call assert_notmatch(':CocInstall', text)
+call assert_match('Completion: off', text)
+call assert_match('Native word completion', text)
+tabclose
+call assert_equal('<Nop>', maparg(' ', 'n'))'''
+        self.vim(commands)
+        # Exercise the compatibility path used by Vim versions without maplist().
+        help_file = self.config / 'core/help.vim'
+        help_file.write_text(help_file.read_text().replace("exists('*maplist')", '0'))
+        self.vim(commands)
+
+    def test_create_in_selected_nested_directory_and_beside_file(self):
+        self.install()
+        project = self.base / 'project'
+        nested = project / 'folder with spaces' / 'nested'
+        nested.mkdir(parents=True)
+        (nested / 'existing.txt').write_text('keep me\n')
+        self.vim("execute 'Lexplore ' . fnameescape(" + quote(project) + ")\nlet v:errmsg = ''\n" + r'''call search('folder with spaces/', 'w')
+call feedkeys("\<CR>", 'xt')
+call search('nested/', 'w')
+call feedkeys(" ninside.txt\<CR>", 'xt')
+''' + 'call assert_true(filereadable(' + quote(nested / 'inside.txt') + '))\n' + r'''call search('nested/', 'w')
+call feedkeys("\<CR>", 'xt')
+call search('existing.txt', 'w')
+call feedkeys(" nbeside.txt\<CR>", 'xt')
+''' + 'call assert_true(filereadable(' + quote(nested / 'beside.txt') + '))\n' + r'''call search('existing.txt', 'w')
+call feedkeys(" nexisting.txt\<CR>", 'xt')
+call search('existing.txt', 'w')
+call feedkeys(" n/new folder\<CR>", 'xt')
+''' + 'call assert_true(isdirectory(' + quote(nested / 'new folder') + '))\n' + r'''call feedkeys(" n\<CR>", 'xt')
+let v:errmsg = ""''')
+        self.assertEqual((nested / 'existing.txt').read_text(), 'keep me\n')
+        self.assertFalse((project / 'inside.txt').exists())
+        self.assertFalse((project / 'beside.txt').exists())
+
     def test_check_and_dry_run_write_nothing(self):
         for args in [('--check',), ('--dry-run',)]:
             self.install(*args)
