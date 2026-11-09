@@ -78,7 +78,8 @@ no theme plugin, Lua or Tree-sitter. True-color terminals use the full palette;
 theme. Set your terminal background to `#181616` if you want it to match.
 Vim's native language syntax can color individual tokens differently from Tree-sitter.
 
-Icons are **optional and off by default**. Try one while in the explorer:
+**Nerd Font icons are enabled by default.** No per-machine setting is needed.
+To switch modes while in the explorer:
 
 ```vim
 :TreeIcons unicode
@@ -86,11 +87,14 @@ Icons are **optional and off by default**. Try one while in the explorer:
 :TreeIcons off
 ```
 
-To keep your choice, put this in `local.vim`:
+If a terminal does not have a Nerd Font, persist a simpler mode in `local.vim`:
 
 ```vim
 let g:vim_config_icons = 'unicode'
 ```
+
+Use `'off'` instead to disable icons. Existing explicit `local.vim` choices are
+preserved on update.
 
 `unicode` uses simple symbols; `nerd` uses folder/file/code/config/image glyphs and
 needs a Nerd Font selected in **your local terminal**, including when connected

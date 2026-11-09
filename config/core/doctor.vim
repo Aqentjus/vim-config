@@ -5,7 +5,7 @@ function! s:Doctor() abort
         \ 'Completion: ' . get(g:, 'vim_config_completion_status', 'off'),
         \ 'Terminal: ' . (has('terminal') ? 'available' : 'not in this Vim build'),
         \ 'Clipboard: ' . VimConfigClipboardBackend(),
-        \ 'Tree icons: ' . get(g:, 'vim_config_icons', 'off'), '',
+        \ 'Tree icons: ' . get(g:, 'vim_config_icons', 'nerd'), '',
         \ 'OPTIONAL TOOLS (only needed for their feature)']
   for l:tool in ['node', 'npm', 'git', 'python3', 'python', 'cc', 'c++', 'clangd', 'bash', 'pwsh', 'lua', 'cmake', 'ninja', 'arm-none-eabi-gcc', 'openocd']
     call add(l:lines, printf('  %-18s %s', l:tool, executable(l:tool) ? exepath(l:tool) : 'not on PATH'))

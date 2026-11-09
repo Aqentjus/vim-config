@@ -1,7 +1,7 @@
 " Personal settings: installed as local.vim once, preserved on every update.
 " Uncomment only the options you want. Restart Vim after changing features.
 
-" Icons: 'off' (default), 'unicode', or 'nerd'.
+" Icons: 'nerd' (default), 'unicode', or 'off'.
 " Nerd icons need a Nerd Font in your LOCAL terminal, even when using SSH.
 " let g:vim_config_icons = 'unicode'
 

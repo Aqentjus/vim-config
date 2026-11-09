@@ -1,8 +1,8 @@
 " Optional signs decorate netrw without editing its filename text.
-" Set g:vim_config_icons to 'unicode' or 'nerd' in local.vim; default is 'off'.
+" Nerd icons are the default; local.vim can select 'unicode' or 'off'.
 function! VimConfigTreeIcons() abort
   if &filetype !=# 'netrw' || !exists('*sign_place') | return | endif
-  let l:mode = get(g:, 'vim_config_icons', 'off')
+  let l:mode = get(g:, 'vim_config_icons', 'nerd')
   let l:state = [b:changedtick, l:mode, get(b:, 'netrw_liststyle', -1)]
   if get(b:, 'vim_config_icon_state', []) ==# l:state | return | endif
   let b:vim_config_icon_state = l:state

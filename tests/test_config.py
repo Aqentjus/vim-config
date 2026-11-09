@@ -168,12 +168,11 @@ call assert_equal(0, bufexists(task))''')
         self.assertEqual(output.read_text(), 'saved')
         self.assertIn('printf saved', script.read_text())
 
-    def test_real_startup_opens_tree_with_configured_icons(self):
+    def test_real_startup_opens_tree_with_default_nerd_icons(self):
         import pty
         import select
         import time
         self.install()
-        (self.config / 'local.vim').write_text("let g:vim_config_icons = 'unicode'\n")
         state = self.base / 'startup-state.txt'
         check = self.base / 'startup.vim'
         check.write_text('''function! CheckStartup() abort
@@ -181,7 +180,7 @@ call assert_equal(0, bufexists(task))''')
     if getbufvar(winbufnr(w), '&filetype') ==# 'netrw'
       execute w . 'wincmd w'
       call VimConfigTreeIcons()
-      call writefile([&filetype, string(len(sign_getplaced(bufnr('%'), {'group': 'VimConfigTree'})[0].signs))], ''' + quote(state) + ''')
+      call writefile([&filetype, string(len(sign_getplaced(bufnr('%'), {'group': 'VimConfigTree'})[0].signs)), sign_getdefined('VimConfigFolder')[0].text], ''' + quote(state) + ''')
     endif
   endfor
   qa!
@@ -205,6 +204,7 @@ autocmd VimEnter * call CheckStartup()
             lines = state.read_text().splitlines()
             self.assertEqual(lines[0], 'netrw')
             self.assertGreater(int(lines[1]), 0)
+            self.assertEqual(lines[2].strip(), '')
         finally:
             os.close(master)
             os.close(slave)
