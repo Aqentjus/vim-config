@@ -1,54 +1,67 @@
 #!/bin/sh
-# Install a standalone Vim configuration on macOS and Linux.
-# Requirements: Vim >= 9.0.0438, Node.js >= 22.15, npm and Git.
+# Base install: Vim and standard shell utilities. No network or development tools.
 set -eu
-
-if [ -z "$HOME" ]; then
-  echo 'HOME is not set.' >&2
-  exit 1
-fi
-for tool in vim node npm git; do
-  if ! command -v "$tool" >/dev/null 2>&1; then
-    echo "Missing $tool; install it before running this installer." >&2
-    exit 1
-  fi
+with_coc=0
+check=0
+dry_run=0
+for arg in "$@"; do
+  case "$arg" in
+    --with-coc) with_coc=1 ;;
+    --check) check=1 ;;
+    --dry-run) dry_run=1 ;;
+    --help|-h) echo 'Usage: sh install.sh [--with-coc] [--check|--dry-run]'; exit 0 ;;
+    *) echo "Unknown option: $arg" >&2; exit 1 ;;
+  esac
 done
-if ! vim -Nu NONE -n -es -c "if !has('patch-9.0.0438') | cquit 1 | endif" -c 'qa!' </dev/null; then
-  echo 'coc.nvim requires Vim 9.0.0438 or newer.' >&2
-  exit 1
-fi
-if ! node -e 'const [a,b]=process.versions.node.split(".").map(Number);process.exit(a>22||(a===22&&b>=15)?0:1)'; then
-  echo 'coc.nvim requires Node.js 22.15.0 or newer.' >&2
-  exit 1
-fi
-
+: "${HOME:?HOME is not set}"
+command -v vim >/dev/null 2>&1 || { echo 'Install your system Vim package first.' >&2; exit 1; }
 repo=$(CDPATH= cd "$(dirname "$0")" && pwd -P)
 source_root="$repo/config"
 root="$HOME/.vim-config"
-if [ ! -f "$source_root/vimrc" ] || [ ! -f "$source_root/coc-settings.json" ] || [ ! -f "$source_root/colors/kanagawa-dragon.vim" ]; then
-  echo 'Incomplete checkout: config/vimrc, coc-settings.json or colors/kanagawa-dragon.vim is missing.' >&2
-  exit 1
-fi
-
-mkdir -p "$root/pack/coc/start"
-plugin="$root/pack/coc/start/coc.nvim"
-if [ -e "$plugin" ] || [ -L "$plugin" ]; then
-  if [ ! -f "$plugin/plugin/coc.vim" ]; then
-    echo "Existing coc.nvim installation appears incomplete: $plugin" >&2
-    exit 1
+for file in vimrc core/options.vim core/theme.vim core/explorer.vim core/icons.vim core/search.vim core/clipboard.vim core/terminal.vim core/runner.vim core/completion.vim core/help.vim core/doctor.vim core/extensions.vim colors/kanagawa-dragon.vim local.vim.example coc-settings.json; do
+  [ -f "$source_root/$file" ] || { echo "Incomplete checkout: config/$file is missing." >&2; exit 1; }
+done
+echo "Vim: $(command -v vim)"
+echo "Config: $root"
+if [ "$with_coc" -eq 1 ]; then
+  for tool in node npm git; do
+    command -v "$tool" >/dev/null 2>&1 || { echo "Optional CoC needs $tool on PATH." >&2; exit 1; }
+  done
+  if ! vim -Nu NONE -i NONE -n -es -c "if !has('patch-9.0.0438') | cquit 1 | endif" -c 'qa!' </dev/null; then
+    echo 'Optional CoC needs Vim 9.0.0438+. Omit --with-coc for the basic editor.' >&2; exit 1
   fi
-  echo "Keeping installed coc.nvim: $plugin"
+  if ! node -e 'const [a,b]=process.versions.node.split(".").map(Number);process.exit(a>22||(a===22&&b>=15)?0:1)'; then
+    echo 'Optional CoC needs Node 22.15+. Omit --with-coc for the basic editor.' >&2; exit 1
+  fi
 else
-  temporary_plugin="$root/pack/coc/start/.coc.nvim.install.$$"
-  if ! git clone --depth 1 --branch release https://github.com/neoclide/coc.nvim.git "$temporary_plugin"; then
-    rm -rf "$temporary_plugin"
-    echo 'coc.nvim download failed; the existing Vim configuration was not replaced.' >&2
-    exit 1
-  fi
-  mv "$temporary_plugin" "$plugin"
-  echo "Installed coc.nvim: $plugin"
+  echo 'Basic install: no Node, npm, Git, Python, compiler or downloads required.'
 fi
-
+if [ "$check" -eq 1 ]; then echo 'Check complete; nothing changed.'; exit 0; fi
+if [ "$dry_run" -eq 1 ]; then
+  echo "Would copy config modules/themes/extensions to $root and loader to $HOME/.vimrc."
+  echo 'Changed files would be backed up; local.vim and coc-settings.json preserved.'
+  if [ "$with_coc" -eq 1 ]; then echo 'Would install/enable optional CoC; no language extensions selected.'; fi
+  exit 0
+fi
+for directory in "$root" "$root/core" "$root/colors" "$root/extensions"; do
+  [ ! -L "$directory" ] || { echo "Use a real configuration directory: $directory" >&2; exit 1; }
+done
+if [ "$with_coc" -eq 1 ]; then
+  plugin="$root/pack/coc/opt/coc.nvim"
+  if [ -f "$root/pack/coc/start/coc.nvim/plugin/coc.vim" ]; then plugin="$root/pack/coc/start/coc.nvim"; fi
+  if [ -e "$plugin" ]; then
+    [ -f "$plugin/plugin/coc.vim" ] || { echo "Incomplete CoC installation: $plugin" >&2; exit 1; }
+    echo "Keeping installed CoC: $plugin"
+  else
+    mkdir -p "$(dirname "$plugin")"
+    temporary_plugin="$plugin.install.$$"
+    if ! git clone --depth 1 --branch release https://github.com/neoclide/coc.nvim.git "$temporary_plugin"; then
+      rm -rf "$temporary_plugin"
+      echo 'CoC download failed; configuration was not replaced.' >&2; exit 1
+    fi
+    mv "$temporary_plugin" "$plugin"
+  fi
+fi
 stamp=$(date '+%Y%m%d-%H%M%S')
 backup_root="$root/backups/$stamp"
 index=1
@@ -86,34 +99,24 @@ copy_managed() {
   echo "Installed: $to"
 }
 
-copy_managed "$source_root/vimrc" "$HOME/.vimrc" ".vimrc"
-for folder in colors extensions; do
-  (cd "$source_root" && find "$folder" -type f -print) | while IFS= read -r relative; do
+# Install modules before switching the loader to the new layout.
+for folder in core colors extensions; do
+  (cd "$source_root" && find "$folder" -type f ! -name '*.pyc' ! -path '*/__pycache__/*' -print) | while IFS= read -r relative; do
     copy_managed "$source_root/$relative" "$root/$relative" "$relative"
   done
 done
-
-# Retire the former bundled theme from active colors without losing user edits.
-legacy_theme="$root/colors/gruvbox.vim"
-if [ -e "$legacy_theme" ] || [ -L "$legacy_theme" ]; then
-  if [ -d "$legacy_theme" ] && [ ! -L "$legacy_theme" ]; then
-    echo "Cannot retire a directory at $legacy_theme" >&2
-    exit 1
+copy_managed "$source_root/vimrc" "$HOME/.vimrc" '.vimrc'
+for file in coc-settings.json local.vim; do
+  if [ ! -e "$root/$file" ] && [ ! -L "$root/$file" ]; then
+    source_name=$file
+    if [ "$file" = local.vim ]; then source_name=local.vim.example; fi
+    copy_managed "$source_root/$source_name" "$root/$file" "$file"
+  else
+    echo "Keeping personal $file"
   fi
-  legacy_backup="$backup_root/colors/gruvbox.vim"
-  mkdir -p "$(dirname "$legacy_backup")"
-  mv "$legacy_theme" "$legacy_backup"
-  echo "Old theme retired from active colors (backup: $legacy_backup)"
+done
+if [ "$with_coc" -eq 1 ]; then
+  : > "$root/completion-enabled"
+  echo 'CoC enabled. Choose languages explicitly with :CocInstall extension-name.'
 fi
-
-# User-edited CoC settings survive future installs.
-if [ ! -e "$root/coc-settings.json" ] && [ ! -L "$root/coc-settings.json" ]; then
-  copy_managed "$source_root/coc-settings.json" "$root/coc-settings.json" "coc-settings.json"
-else
-  echo 'Keeping existing coc-settings.json; custom settings are preserved.'
-fi
-
-echo ''
-echo 'Installed. You can now move or delete the Git checkout.'
-echo 'On first Vim start, CoC installs missing language extensions (internet required).'
-echo 'In Vim run :CocInfo to check completion and language servers.'
+echo 'Installed. The checkout can be moved/deleted. Space h: help; :ConfigDoctor: optional tools.'

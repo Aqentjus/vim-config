@@ -1,0 +1,13 @@
+" Personal settings: installed as local.vim once, preserved on every update.
+" Uncomment only the options you want. Restart Vim after changing features.
+
+" Icons: 'off' (default), 'unicode', or 'nerd'.
+" Nerd icons need a Nerd Font in your LOCAL terminal, even when using SSH.
+" let g:vim_config_icons = 'unicode'
+
+" Completion: enabled by install.sh --with-coc / install.ps1 -WithCoc.
+" You can disable it here without removing downloaded packages.
+" let g:vim_config_completion = 0
+
+" Put personal mappings, indentation and colorscheme changes below.
+" set shiftwidth=4 softtabstop=4

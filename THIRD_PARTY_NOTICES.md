@@ -69,9 +69,12 @@ THE SOFTWARE.
 ## Plugins installed separately
 
 The repository does **not** contain copies of the following plugins.
-The installer downloads coc.nvim from its upstream `release` branch, and
-coc.nvim fetches the configured extensions on first launch. Their versions
-and transitive dependencies can change independently of this repository.
+Only an explicit `--with-coc` / `-WithCoc` install downloads coc.nvim from its
+upstream `release` branch. Language extensions are separately selected by the
+user with `:CocInstall`; none are automatically installed by this configuration.
+The table below lists optional components used by this setup or its earlier
+versions. Their versions and transitive dependencies can change independently
+of this repository.
 
 | Component | Upstream | License |
 | --- | --- | --- |

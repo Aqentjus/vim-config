@@ -2,7 +2,7 @@
 
 The Vim commands and Python helper ship in `config/extensions/pico/` and
 are installed into `~/.vim-config/extensions/pico/`.
-The installed vimrc loads `init.vim` automatically and quietly. Projects no longer
+The installed `core/extensions.vim` loads `init.vim` automatically and quietly. Projects no longer
 need `tools/pico.py`, `tools/pico.vim`, or an explicit `:source` command.
 The normal Space+r single-file runner is unchanged.
 
@@ -15,7 +15,7 @@ The normal Space+r single-file runner is unchanged.
 | `:PicoCheck` | Show tools, project path and commands without running tools or touching hardware. |
 
 The lowercase names are exact command-line abbreviations; use the uppercase
-names in scripts. Output remains visible in a bottom terminal. The commands
+names in scripts. Output remains visible in the tab's managed bottom terminal; `Space t` stops/closes it. The commands
 also appear in the Space+h / :Keys table when this extension is available.
 
 ## Finding the project

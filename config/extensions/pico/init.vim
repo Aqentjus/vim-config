@@ -16,6 +16,7 @@ else
 endif
 
 function! s:Pico(action) abort
+  if !VimConfigTerminalAvailable() | return | endif
   " Use the folder being browsed, the current source file, or Vim's cwd.
   if &filetype ==# 'netrw'
     let l:start = get(b:, 'netrw_curdir', getcwd())
@@ -57,9 +58,8 @@ function! s:Pico(action) abort
     endfor
   endif
 
-  botright 12new
-  call term_start(s:python + [s:helper, a:action, '--project', l:root],
-        \ {'curwin': 1, 'cwd': l:root, 'term_name': 'Pico: ' . a:action})
+  call VimConfigTerminalRun(s:python + [s:helper, a:action, '--project', l:root],
+        \ { 'cwd': l:root, 'term_name': 'Pico: ' . a:action})
 endfunction
 
 command! BuildPico call <SID>Pico('build')

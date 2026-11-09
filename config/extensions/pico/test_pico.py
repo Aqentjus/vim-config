@@ -19,7 +19,7 @@ class PicoTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='pico shared ')
         self.addCleanup(self.temp.cleanup)
-        self.base = Path(self.temp.name)
+        self.base = Path(self.temp.name).resolve()
         self.project = self.base / 'school project ää'
         (self.project / 'src').mkdir(parents=True)
         (self.project / 'CMakeLists.txt').write_text('project(blink C CXX ASM)\n')
@@ -41,13 +41,13 @@ class PicoTests(unittest.TestCase):
         self.environment.start()
         self.addCleanup(self.environment.stop)
         self.calls = []
-        self.fail = None
+        self.fail_step = None
         self.make_elf = True
 
     def fake_run(self, command, **kwargs):
         step = 'configure' if '-S' in command else 'build' if '--build' in command else 'flash'
         self.calls.append((step, command, kwargs))
-        if self.fail == step:
+        if self.fail_step == step:
             raise subprocess.CalledProcessError(7, command)
         if step == 'build' and self.make_elf:
             build = Path(command[command.index('--build') + 1])
@@ -117,13 +117,13 @@ class PicoTests(unittest.TestCase):
         self.assertIn('program blink.elf verify reset exit', self.calls[-1][1])
 
     def test_configure_failure_stops_build_and_flash(self):
-        self.fail = 'configure'
+        self.fail_step = 'configure'
         with self.assertRaises(subprocess.CalledProcessError):
             self.invoke('flash')
         self.assertEqual([x[0] for x in self.calls], ['configure'])
 
     def test_build_failure_never_flashes(self):
-        self.fail = 'build'
+        self.fail_step = 'build'
         with self.assertRaises(subprocess.CalledProcessError):
             self.invoke('flash')
         self.assertEqual([x[0] for x in self.calls], ['configure', 'build'])

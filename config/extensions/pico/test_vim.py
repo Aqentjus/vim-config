@@ -20,11 +20,12 @@ class VimTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='vim extensions ')
         self.addCleanup(self.temp.cleanup)
-        self.base = Path(self.temp.name)
+        self.base = Path(self.temp.name).resolve()
         self.repo = self.base / 'config copy ä'
         self.repo.mkdir()
         self.vimrc = self.repo / 'vimrc'
         shutil.copy2(SOURCE / 'vimrc', self.vimrc)
+        shutil.copytree(SOURCE / 'core', self.repo / 'core')
         self.extension = self.repo / 'extensions/pico'
         self.extension.mkdir(parents=True)
         shutil.copy2(SOURCE / 'extensions/pico/init.vim', self.extension / 'init.vim')
