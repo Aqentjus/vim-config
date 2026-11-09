@@ -52,13 +52,8 @@ if has('termguicolors') && (has('macunix') || has('vcon') || $COLORTERM ==# 'tru
 endif
 
 let s:theme_supported = has('gui_running') || &t_Co == 256 || (has('termguicolors') && &termguicolors)
-if filereadable(s:config_dir . '/colors/molokai.vim') && s:theme_supported
-  colorscheme molokai
-  " Keep the sign gutter and number column on Molokai's dark editor background.
-  " Retain diagnostic colours and the brighter line numbers from our final test.
-  highlight SignColumn guibg=#1B1D1E ctermbg=233
-  highlight LineNr guifg=#808080 guibg=#1B1D1E ctermfg=244 ctermbg=233
-  highlight CursorLineNr guibg=#1B1D1E ctermbg=233
+if filereadable(s:config_dir . '/colors/kanagawa-dragon.vim') && s:theme_supported
+  colorscheme kanagawa-dragon
 else
   " The editor remains usable in terminals with insufficient colour support.
   colorscheme default

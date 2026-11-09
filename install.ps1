@@ -19,7 +19,7 @@ $repo = (Resolve-Path -LiteralPath $PSScriptRoot).Path
 $sourceRoot = Join-Path $repo 'config'
 $root = Join-Path $HOME '.vim-config'
 $target = Join-Path $HOME '_vimrc'
-foreach ($source in @('vimrc', 'coc-settings.json', 'colors/molokai.vim')) {
+foreach ($source in @('vimrc', 'coc-settings.json', 'colors/kanagawa-dragon.vim')) {
     if (-not (Test-Path -LiteralPath (Join-Path $sourceRoot $source) -PathType Leaf)) {
         throw "Incomplete checkout: config/$source is missing."
     }

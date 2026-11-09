@@ -25,8 +25,8 @@ fi
 repo=$(CDPATH= cd "$(dirname "$0")" && pwd -P)
 source_root="$repo/config"
 root="$HOME/.vim-config"
-if [ ! -f "$source_root/vimrc" ] || [ ! -f "$source_root/coc-settings.json" ] || [ ! -f "$source_root/colors/molokai.vim" ]; then
-  echo 'Incomplete checkout: config/vimrc, coc-settings.json or colors/molokai.vim is missing.' >&2
+if [ ! -f "$source_root/vimrc" ] || [ ! -f "$source_root/coc-settings.json" ] || [ ! -f "$source_root/colors/kanagawa-dragon.vim" ]; then
+  echo 'Incomplete checkout: config/vimrc, coc-settings.json or colors/kanagawa-dragon.vim is missing.' >&2
   exit 1
 fi
 

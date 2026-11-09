@@ -1,6 +1,18 @@
 # Vim configuration
 
-Molokai · netrw explorer · coc.nvim (C/C++ and Python) · Pico build/flash tools.
+Custom Kanagawa Dragon · netrw explorer · coc.nvim (C/C++ and Python) · Pico build/flash tools.
+
+## Theme
+
+The bundled `kanagawa-dragon` colorscheme carries over our Neovim Dragon
+backgrounds and brighter syntax palette: green strings, blue functions, purple
+types/keywords, pink-red statements, orange numbers and line numbers.
+
+It is plain Vimscript with no theme plugin, Lua, Tree-sitter, font or download
+requirement. True-color terminals use the full palette; 256-color terminals use
+approximations, and limited-color terminals keep Vim's default theme. The terminal
+background can be set to `#181616` to match. Highlighting uses Vim's built-in
+language syntax, so individual tokens can differ from Neovim's parser highlighting.
 
 ## Prerequisites
 
