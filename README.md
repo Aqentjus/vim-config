@@ -10,11 +10,11 @@ targets Vim 8+; there is no CoC-driven version gate. A tiny/minimal Vim build ma
 lack syntax, netrw, signs or terminal support. Missing optional tools do not block
 ordinary editing. Linux, macOS and native Windows use the same configuration.
 
-Get this repository's `staging` branch with Git, or transfer an extracted archive
+Get this repository's `production` branch with Git, or transfer an extracted archive
 to a restricted/offline machine. Git is not needed to run the basic installer.
 
 ```sh
-git clone --branch staging https://github.com/Aqentjus/vim-config.git
+git clone --branch production https://github.com/Aqentjus/vim-config.git
 cd vim-config
 sh ./install.sh
 ```
@@ -39,7 +39,7 @@ sh ./install.sh --check     # Verify base prerequisites; no writes/downloads
 sh ./install.sh --dry-run   # Describe the install; no writes/downloads
 ```
 
-Windows equivalents are `-Check` and `-DryRun`. To update, get the newer `staging`
+Windows equivalents are `-Check` and `-DryRun`. To update, get the newer `production`
 files (`git pull --ff-only` for a checkout) and rerun the installer. Close Vim
 before updating. To restore a changed managed file, copy it back from the printed
 backup path. Updates preserve personal settings and separately installed packages.
