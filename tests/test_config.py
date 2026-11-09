@@ -230,6 +230,62 @@ call search('hello world.py', 'w')
 call feedkeys("\<CR>", 'xt')
 ''' + 'call assert_equal(' + quote(file) + ", expand('%:p'))")
 
+    def test_static_file_icons_have_colors_and_survive_theme_changes(self):
+        self.install()
+        project = self.base / 'icon samples'
+        project.mkdir()
+        (project / 'folder').mkdir()
+        expected = {
+            'example.py': 'Python', 'example.js': 'JavaScript', 'example.ts': 'TypeScript',
+            'example.c': 'C', 'capital.C': 'Cpp', 'example.cpp': 'Cpp', 'example.rs': 'Rust',
+            'example.go': 'Go', 'README.md': 'Markdown', 'photo.png': 'Image',
+            'archive.tar.gz': 'Archive', 'unknown.xyz': 'File', 'Dockerfile': 'Docker',
+            'Makefile': 'Make', 'CMakeLists.txt': 'Make', '.gitignore': 'Git',
+            'package.json': 'Npm', 'pyproject.toml': 'Python', '.env.local': 'Config',
+            'with spaces.py': 'Python', 'run.sh': 'Shell', 'folder/': 'Folder',
+            'linked.py@': 'Link',
+        }
+        for name in expected:
+            if not name.endswith(('/', '@')):
+                (project / name).write_text('sample\n')
+        (project / 'run.sh').chmod(0o755)
+        (project / 'linked.py').symlink_to(project / 'example.py')
+        pairs = ', '.join(quote(name) + ': ' + quote(kind) for name, kind in expected.items())
+        self.vim("execute 'Lexplore ' . fnameescape(" + quote(project) + ")\nlet v:errmsg = ''\n" +
+                 'let expected = {' + pairs + '}\n' + r'''let original = getline(1, '$')
+call VimConfigTreeIcons()
+let signs = sign_getplaced(bufnr('%'), {'group': 'VimConfigTree'})[0].signs
+for [name, kind] in items(expected)
+  let found = 0
+  for entry in signs
+    let text = substitute(getline(entry.lnum), '^\%([-+|│] \)\+', '', '')
+    let text = substitute(text, '\*$', '', '')
+    let text = split(text, "\t")[0]
+    if text ==# name
+      call assert_equal('VimConfig' . kind, entry.name, name)
+      let found = 1
+    endif
+  endfor
+  call assert_equal(1, found, name . ': ' . string(original))
+endfor
+call assert_equal('#F0D36B', synIDattr(hlID('VimConfigIconPython'), 'fg', 'gui'))
+call assert_equal('#80B9FA', synIDattr(hlID('VimConfigIconTypeScript'), 'fg', 'gui'))
+call assert_equal('#EE7988', synIDattr(hlID('VimConfigIconGit'), 'fg', 'gui'))
+set notermguicolors
+call assert_notequal('', synIDattr(hlID('VimConfigIconPython'), 'fg', 'cterm'))
+colorscheme default
+call assert_equal('#F0D36B', synIDattr(hlID('VimConfigIconPython'), 'fg', 'gui'))
+colorscheme kanagawa-dragon
+call assert_equal('#80B9FA', synIDattr(hlID('VimConfigIconTypeScript'), 'fg', 'gui'))
+highlight VimConfigIconPython guifg=#123456 ctermfg=24
+TreeIcons unicode
+call assert_equal('#123456', synIDattr(hlID('VimConfigIconPython'), 'fg', 'gui'))
+call assert_equal('Py', sign_getdefined('VimConfigPython')[0].text)
+call assert_equal(original, getline(1, '$'))
+TreeIcons off
+call assert_equal([], sign_getplaced(bufnr('%'), {'group': 'VimConfigTree'})[0].signs)
+''')
+
     def test_terminal_tasks_are_per_tab_and_can_be_stopped(self):
         self.install()
         self.vim(r'''if has('terminal')

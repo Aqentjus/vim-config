@@ -96,14 +96,28 @@ let g:vim_config_icons = 'unicode'
 Use `'off'` instead to disable icons. Existing explicit `local.vim` choices are
 preserved on update.
 
-`unicode` uses simple symbols; `nerd` uses folder/file/code/config/image glyphs and
-needs a Nerd Font selected in **your local terminal**, including when connected
+`unicode` uses simple symbols and short labels such as `Py` and `JS`. `nerd` uses
+file-type glyphs and needs a Nerd Font selected in **your local terminal**, including when connected
 through SSH. No font or icon package is installed on the server. Unsupported fonts
 may show boxes; switch to `unicode` or `off`.
 
 Icons use Vim's built-in sign column on tree/simple listings and do not alter
 filenames or netrw actions. They require a Vim build with sign functions. Wide/long
 listings remain plain. No icon or explorer plugin is installed.
+
+The icon table is bundled in `config/core/icons.vim`: 49 icon kinds, 120 extension
+mappings and 43 special filenames. Python, JavaScript/TypeScript, C/C++, Go, Rust,
+Java, shell, HTML/CSS, JSON/YAML, Markdown, images, archives and more have distinct
+icons/colors. Exact names such as `Dockerfile`, `Makefile`, `.gitignore`,
+`package.json` and `pyproject.toml` take priority over their file extension.
+Unknown files get a neutral file icon; directories and symlinks have their own.
+
+Colors are static too, with true-color and 256-color values. They survive switching
+colorschemes. Glyph shapes come from your terminal's font, so they can vary between
+Nerd Fonts/versions. These are font glyphs, not downloaded images or VS Code SVGs.
+No packages, network access or extra runtime are needed for this table. To add or
+change a mapping, edit the table in the repository; installed managed files are
+replaced on update.
 
 ## Optional completion
 
