@@ -150,10 +150,13 @@ organization's approval process when applicable. No extension set is installed
 automatically. Existing extensions are preserved and can run when CoC is enabled.
 Plugin/extension versions are unpinned.
 
-An old `pack/coc/start/coc.nvim` installation is preserved but does **not** auto-load
-on upgrade. `--with-coc` reuses it and records the choice in `completion-enabled`.
-Later ordinary installs preserve that choice. To disable CoC without deleting its
-files, add `let g:vim_config_completion = 0` to `local.vim` and restart Vim.
+Existing `pack/coc/start/coc.nvim` and `pack/coc/opt/coc.nvim` installations are
+detected automatically on upgrade, even without a `completion-enabled` marker.
+This restores automatic language-aware suggestions using your installed extensions.
+Fresh base installs still download nothing; use `--with-coc` to add CoC explicitly.
+To disable CoC without deleting its files, add `let g:vim_config_completion = 0`
+to `local.vim` and restart Vim. This explicit setting overrides automatic detection
+and the installer marker.
 If an enabled CoC setup lacks its runtime requirements, editing still opens quietly;
 `:ConfigDoctor` explains what is unavailable.
 

@@ -5,7 +5,7 @@ let g:vim_config_home = empty($VIM_CONFIG_HOME) ? expand('~/.vim-config') : $VIM
 let g:vim_config_home = substitute(fnamemodify(g:vim_config_home, ':p'), '\\', '/', 'g')
 let g:vim_config_home = substitute(g:vim_config_home, '/$', '', '')
 let &runtimepath = escape(g:vim_config_home, ',') . ',' . &runtimepath
-" Do not add the private directory to packpath: old CoC installs stay opt-in.
+" Keep packages out of packpath: completion setup checks overrides and tools.
 for s:module in ['options', 'theme', 'explorer', 'icons', 'search', 'clipboard',
       \ 'terminal', 'runner', 'completion', 'help', 'doctor', 'extensions']
   execute 'source ' . fnameescape(g:vim_config_home . '/core/' . s:module . '.vim')

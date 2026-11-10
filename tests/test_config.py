@@ -187,12 +187,40 @@ printf 'let g:fresh_coc_loaded = 1\\n' > "$1/plugin/coc.vim"''')
         self.assertEqual(self.snapshot(), before)
         self.vim("call assert_equal(7, &shiftwidth)\ncall assert_equal('unicode', g:vim_config_icons)")
 
-    def test_old_coc_package_is_not_auto_loaded(self):
+    def test_old_coc_package_respects_explicit_disable(self):
         plugin = self.config / 'pack/coc/start/coc.nvim/plugin'
         plugin.mkdir(parents=True)
         (plugin / 'coc.vim').write_text("let g:unwanted_coc = 1\n")
         self.install()
+        (self.config / 'local.vim').write_text('let g:vim_config_completion = 0\n')
         self.vim("packloadall\ncall assert_equal(0, exists('g:unwanted_coc'))")
+
+    def test_existing_coc_is_detected_without_opt_in_marker(self):
+        self.install()
+        self.fake_coc_tools('exit 99')
+        for location in ['start', 'opt']:
+            with self.subTest(location=location):
+                plugin = self.config / ('pack/coc/' + location + '/coc.nvim/plugin')
+                plugin.mkdir(parents=True)
+                source = plugin / 'coc.vim'
+                source.write_text('let g:existing_coc_loaded = 1\n')
+                self.assertFalse((self.config / 'completion-enabled').exists())
+                self.vim("call assert_equal(1, g:existing_coc_loaded)\n"
+                         "call assert_match('^enabled', g:vim_config_completion_status)\n"
+                         "call assert_match('coc-definition', maparg('gd', 'n'))\n"
+                         "call assert_equal([], g:coc_global_extensions)\n"
+                         "call assert_equal(g:vim_config_home . '/coc-data', g:coc_data_home)")
+                source.unlink()
+
+    def test_existing_coc_without_node_remains_quiet(self):
+        self.install()
+        plugin = self.config / 'pack/coc/start/coc.nvim/plugin'
+        plugin.mkdir(parents=True)
+        (plugin / 'coc.vim').write_text('let g:unwanted_coc = 1\n')
+        self.vim("call assert_match('^unavailable', g:vim_config_completion_status)\n"
+                 "call assert_equal(0, exists('g:unwanted_coc'))\n"
+                 "call assert_equal('', execute('messages'))\n"
+                 "call assert_equal('', maparg('<Tab>', 'i'))")
 
     def test_opt_in_reuses_existing_coc_without_extension_downloads(self):
         plugin = self.config / 'pack/coc/start/coc.nvim/plugin'

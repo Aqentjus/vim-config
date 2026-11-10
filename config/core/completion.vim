@@ -1,7 +1,14 @@
-" Completion is optional; no extension downloads are requested at startup.
+" Reuse installed CoC on upgrades; fresh installs remain dependency-free.
+" An explicit local.vim override wins. Never download packages at startup.
 function! VimConfigCompletionSetup() abort
   let g:vim_config_completion_status = 'off (native Vim completion is available)'
-  if !get(g:, 'vim_config_completion', filereadable(g:vim_config_home . '/completion-enabled'))
+  let l:plugin = g:vim_config_home . '/pack/coc/opt/coc.nvim'
+  if !filereadable(l:plugin . '/plugin/coc.vim')
+    let l:plugin = g:vim_config_home . '/pack/coc/start/coc.nvim'
+  endif
+  let l:installed = filereadable(l:plugin . '/plugin/coc.vim')
+  let l:enabled = l:installed || filereadable(g:vim_config_home . '/completion-enabled')
+  if !get(g:, 'vim_config_completion', l:enabled)
     return
   endif
   if !has('patch-9.0.0438') || !executable('node')
@@ -14,11 +21,7 @@ function! VimConfigCompletionSetup() abort
     let g:vim_config_completion_status = 'unavailable: CoC needs Node 22.15+'
     return
   endif
-  let l:plugin = g:vim_config_home . '/pack/coc/opt/coc.nvim'
-  if !filereadable(l:plugin . '/plugin/coc.vim')
-    let l:plugin = g:vim_config_home . '/pack/coc/start/coc.nvim'
-  endif
-  if !filereadable(l:plugin . '/plugin/coc.vim')
+  if !l:installed
     let g:vim_config_completion_status = 'not installed: rerun installer with --with-coc (Windows: -WithCoc)'
     return
   endif
