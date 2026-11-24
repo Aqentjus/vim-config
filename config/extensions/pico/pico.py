@@ -4,6 +4,7 @@
 import argparse
 import os
 from pathlib import Path
+import re
 import shlex
 import shutil
 import subprocess
@@ -11,7 +12,6 @@ import sys
 
 # Project choices from CMakeLists.txt and the previously working SWD task.
 BOARD = "pico_w"
-TARGET = "blink"
 CHIP = "rp2040"
 SDK_VERSION = "2.3.1"
 TOOLCHAIN_VERSION = "15_2_Rel1"
@@ -22,6 +22,8 @@ OPENOCD_VERSION = "0.12.0+dev"
 WINDOWS = os.name == "nt"
 EXE = ".exe" if WINDOWS else ""
 TOOLS = Path(os.environ.get("PICO_TOOLS_HOME", str(Path.home() / ".pico-sdk"))).expanduser()
+# Target names are also used in an OpenOCD Tcl command, so only plain names match.
+PROJECT_NAME = re.compile(r"^\s*project\s*\(\s*([A-Za-z0-9_-]+)", re.IGNORECASE | re.MULTILINE)
 
 
 def find_project(start):
@@ -33,6 +35,15 @@ def find_project(start):
         if (candidate / "CMakeLists.txt").is_file():
             return candidate
     raise RuntimeError("No CMakeLists.txt found at or above {}. Open the project folder first.".format(directory))
+
+
+def project_target(root):
+    """Target name from project(<name>); the CMakeLists builds ${PROJECT_NAME}."""
+    cmake_file = root / "CMakeLists.txt"
+    match = PROJECT_NAME.search(cmake_file.read_text(encoding="utf-8", errors="replace"))
+    if not match:
+        raise RuntimeError("No project(<name>) found in {}.".format(cmake_file))
+    return match.group(1)
 
 
 def find_tool(variable, name, packaged_paths):
@@ -56,7 +67,7 @@ def find_tool(variable, name, packaged_paths):
     return found
 
 
-def build_settings(root):
+def build_settings(root, target):
     build_dir = root / "build-pico"  # Keep the old VS Code build directory untouched.
     sdk = Path(os.environ.get("PICO_SDK_PATH", str(TOOLS / "sdk" / SDK_VERSION))).expanduser().resolve()
     if not (sdk / "pico_sdk_init.cmake").is_file():
@@ -80,10 +91,10 @@ def build_settings(root):
         location = Path(os.environ.get(package.upper() + "_DIR", str(default))).expanduser()
         if location.is_dir():
             configure.append("-D{}_DIR={}".format(package, location.resolve()))
-    return configure, [cmake, "--build", str(build_dir), "--target", TARGET, "--parallel"], env
+    return configure, [cmake, "--build", str(build_dir), "--target", target, "--parallel"], env
 
 
-def flash_command():
+def flash_command(target):
     openocd = find_tool("PICO_OPENOCD", "openocd", [
         "openocd/{}/openocd{}".format(OPENOCD_VERSION, EXE),
         "openocd/{}/bin/openocd{}".format(OPENOCD_VERSION, EXE)])
@@ -102,7 +113,7 @@ def flash_command():
     # Run from the build directory so Tcl never has to interpret a user-supplied absolute path.
     command += ["-f", "interface/cmsis-dap.cfg", "-f", "target/" + CHIP + ".cfg",
                 "-c", "adapter speed " + str(speed),
-                "-c", "program " + TARGET + ".elf verify reset exit"]
+                "-c", "program " + target + ".elf verify reset exit"]
     return command
 
 
@@ -121,10 +132,11 @@ def main():
     args = parser.parse_args()
     root = find_project(args.project)
     build_dir = root / "build-pico"
+    target = project_target(root)
     print("Project: {}".format(root), flush=True)
-    print("Pico: {} / {} | target {} | {}".format(BOARD, CHIP, TARGET, sys.platform), flush=True)
-    configure, build, env = build_settings(root)
-    flash = flash_command() if args.action in ("check", "flash") else None
+    print("Pico: {} / {} | target {} | {}".format(BOARD, CHIP, target, sys.platform), flush=True)
+    configure, build, env = build_settings(root, target)
+    flash = flash_command(target) if args.action in ("check", "flash") else None
     dry_run = args.dry_run or args.action == "check"
     if dry_run:
         print("CHECK ONLY: no build and no connection to the probe.", flush=True)
@@ -132,8 +144,8 @@ def main():
     run(build, root, env, dry_run)
     if args.action == "flash":
         # Both subprocesses above must succeed before reaching OpenOCD.
-        if not dry_run and not (build_dir / (TARGET + ".elf")).is_file():
-            raise RuntimeError("Build did not produce {}.elf; refusing to flash.".format(TARGET))
+        if not dry_run and not (build_dir / (target + ".elf")).is_file():
+            raise RuntimeError("Build did not produce {}.elf; refusing to flash.".format(target))
         run(flash, build_dir, env, dry_run)
     elif args.action == "check":
         run(flash, build_dir, env, True)

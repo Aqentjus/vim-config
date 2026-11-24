@@ -40,10 +40,15 @@ them first. Do not run simultaneous builds/flashes for the same project.
 
 This is a relocation of the previously working school-project helper, **not** a
 new universal Pico build system. The explicit defaults at the top of `pico.py`
-remain `pico_w`, RP2040, target `blink`, `build-pico/blink.elf`, CMSIS-DAP, and
-5000 kHz SWD. The SDK/tool versions and command sequence are unchanged. Different
-boards or target names require deliberately changing those settings; discovery
-finds the project directory, not its complete board/tool configuration.
+remain `pico_w`, RP2040, CMSIS-DAP, and 5000 kHz SWD. The SDK/tool versions and
+command sequence are unchanged. Different boards require deliberately changing
+those settings; discovery finds the project directory, not its complete
+board/tool configuration.
+
+The build target is the name in the project's `project(<name> ...)` line, so
+`project(blink C CXX ASM)` builds and flashes `build-pico/blink.elf`. This
+assumes the executable is `add_executable(${PROJECT_NAME} ...)`, as in the
+course template.
 
 The project keeps its sources, `CMakeLists.txt`, `pico_sdk_import.cmake`, and any
 other genuine project dependencies. Keep the standalone CMake changes from the

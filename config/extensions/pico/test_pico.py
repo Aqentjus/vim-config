@@ -52,7 +52,8 @@ class PicoTests(unittest.TestCase):
         if step == 'build' and self.make_elf:
             build = Path(command[command.index('--build') + 1])
             build.mkdir(exist_ok=True)
-            (build / 'blink.elf').write_bytes(b'fake firmware')
+            target = command[command.index('--target') + 1]
+            (build / (target + '.elf')).write_bytes(b'fake firmware')
         return subprocess.CompletedProcess(command, 0)
 
     def invoke(self, action, *extra):
@@ -94,6 +95,20 @@ class PicoTests(unittest.TestCase):
         self.assertFalse((self.project / 'tools/pico.py').exists())
         self.assertIn('--target', self.calls[1][1])
         self.assertIn('blink', self.calls[1][1])
+
+    def test_target_comes_from_project_name(self):
+        (self.project / 'CMakeLists.txt').write_text(
+            '# Set name of project (as PROJECT_NAME)\n  PROJECT ( pillware C CXX ASM)\n')
+        self.invoke('flash')
+        build = self.calls[1][1]
+        self.assertEqual(build[build.index('--target') + 1], 'pillware')
+        self.assertIn('program pillware.elf verify reset exit', self.calls[-1][1])
+
+    def test_missing_project_name_is_explicit_error(self):
+        (self.project / 'CMakeLists.txt').write_text('add_executable(${PROJECT_NAME} main.c)\n')
+        with self.assertRaisesRegex(RuntimeError, 'No project'):
+            self.invoke('build')
+        self.assertEqual(self.calls, [])
 
     def test_build_does_not_require_openocd(self):
         os.environ['PICO_OPENOCD'] = str(self.base / 'missing-openocd')
