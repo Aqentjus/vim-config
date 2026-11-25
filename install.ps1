@@ -7,7 +7,7 @@ $repo = (Resolve-Path -LiteralPath $PSScriptRoot).Path
 $sourceRoot = Join-Path $repo 'config'
 $root = Join-Path $HOME '.vim-config'
 $target = Join-Path $HOME '_vimrc'
-foreach ($source in @('vimrc', 'core/options.vim', 'core/theme.vim', 'core/explorer.vim', 'core/icons.vim', 'core/search.vim', 'core/clipboard.vim', 'core/terminal.vim', 'core/runner.vim', 'core/completion.vim', 'core/help.vim', 'core/doctor.vim', 'core/extensions.vim', 'colors/kanagawa-dragon.vim', 'local.vim.example', 'coc-settings.json')) {
+foreach ($source in @('vimrc', 'core/options.vim', 'core/theme.vim', 'core/explorer.vim', 'core/icons.vim', 'core/search.vim', 'core/clipboard.vim', 'core/terminal.vim', 'core/runner.vim', 'core/completion.vim', 'core/help.vim', 'core/doctor.vim', 'core/extensions.vim', 'colors/gruvbox.vim', 'colors/kanagawa-dragon.vim', 'local.vim.example', 'coc-settings.json')) {
     if (-not (Test-Path -LiteralPath (Join-Path $sourceRoot $source) -PathType Leaf)) { throw "Incomplete checkout: config/$source is missing." }
 }
 Write-Host "Vim: $((Get-Command vim).Source)"

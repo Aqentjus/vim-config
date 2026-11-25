@@ -18,7 +18,7 @@ command -v vim >/dev/null 2>&1 || { echo 'Install your system Vim package first.
 repo=$(CDPATH= cd "$(dirname "$0")" && pwd -P)
 source_root="$repo/config"
 root="$HOME/.vim-config"
-for file in vimrc core/options.vim core/theme.vim core/explorer.vim core/icons.vim core/search.vim core/clipboard.vim core/terminal.vim core/runner.vim core/completion.vim core/help.vim core/doctor.vim core/extensions.vim colors/kanagawa-dragon.vim local.vim.example coc-settings.json; do
+for file in vimrc core/options.vim core/theme.vim core/explorer.vim core/icons.vim core/search.vim core/clipboard.vim core/terminal.vim core/runner.vim core/completion.vim core/help.vim core/doctor.vim core/extensions.vim colors/gruvbox.vim colors/kanagawa-dragon.vim local.vim.example coc-settings.json; do
   [ -f "$source_root/$file" ] || { echo "Incomplete checkout: config/$file is missing." >&2; exit 1; }
 done
 echo "Vim: $(command -v vim)"

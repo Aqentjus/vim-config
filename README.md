@@ -1,6 +1,6 @@
 # Vim configuration
 
-A portable editor first: custom Kanagawa Dragon, built-in netrw, search, clipboard
+A portable editor first: Gruvbox, built-in netrw, search, clipboard
 shortcuts and small Vimscript helpers. Development tools are optional.
 
 ## Install
@@ -61,7 +61,8 @@ It is loaded after the shared modules; optional completion respects personal map
     completion.vim             Optional CoC integration
     help.vim, doctor.vim        Explicit help and tool report
     extensions.vim             Bundled extension loader
-  colors/kanagawa-dragon.vim    Plain Vimscript theme
+  colors/gruvbox.vim            Default theme
+  colors/kanagawa-dragon.vim    Optional custom theme
   extensions/pico/              Optional Python Pico helper
   local.vim                    Your preserved settings
 ```
@@ -72,8 +73,9 @@ For a checkout preview without installing, set `VIM_CONFIG_HOME` to its absolute
 
 ## Theme and tree icons
 
-The bundled Kanagawa Dragon port uses our brighter Neovim syntax palette, with
-no theme plugin, Lua or Tree-sitter. True-color terminals use the full palette;
+The default theme is [Gruvbox](https://github.com/morhetz/gruvbox) (dark), with the
+background set to `#181616`. The custom Kanagawa Dragon port is still bundled:
+switch with `:colorscheme kanagawa-dragon`. No theme plugin, Lua or Tree-sitter. True-color terminals use the full palette;
 256-color terminals use approximations. Limited-color terminals keep Vim's default
 theme. Set your terminal background to `#181616` if you want it to match.
 Vim's native language syntax can color individual tokens differently from Tree-sitter.
